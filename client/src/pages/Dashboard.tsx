@@ -14,6 +14,12 @@ import {
   Pen,
   BarChart3,
   Plus,
+  Users,
+  Webhook,
+  CreditCard,
+  Timer,
+  TrendingUp,
+  ArrowRight,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -83,6 +89,37 @@ const MODULE_CARDS = [
   },
 ];
 
+const ENTERPRISE_LINKS = [
+  {
+    title: "Analytics",
+    description: "Real-time performance metrics",
+    icon: TrendingUp,
+    path: "/analytics",
+    color: "from-blue-500 to-indigo-500",
+  },
+  {
+    title: "Webhooks",
+    description: "External integrations",
+    icon: Webhook,
+    path: "/webhooks",
+    color: "from-green-500 to-emerald-500",
+  },
+  {
+    title: "Billing",
+    description: "Invoices & revenue",
+    icon: CreditCard,
+    path: "/billing",
+    color: "from-orange-500 to-red-500",
+  },
+  {
+    title: "Scheduling",
+    description: "Automated campaigns",
+    icon: Timer,
+    path: "/scheduling",
+    color: "from-purple-500 to-pink-500",
+  },
+];
+
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
@@ -116,20 +153,30 @@ export default function Dashboard() {
                 Welcome back, {user?.name || "Agent"}. Manage all your AI-powered marketing campaigns from one elegant dashboard.
               </p>
             </div>
-            <Button
-              onClick={() => navigate("/clients/new")}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Plus className="w-4 h-4" />
-              New Client
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/clients")}
+                className="gap-2"
+              >
+                <Users className="w-4 h-4" />
+                Clients
+              </Button>
+              <Button
+                onClick={() => navigate("/clients")}
+                className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Plus className="w-4 h-4" />
+                New Client
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="border-slate-200 dark:border-slate-800 hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
@@ -177,6 +224,35 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Enterprise Quick Links */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+          {ENTERPRISE_LINKS.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Card
+                key={link.path}
+                className="border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer group"
+                onClick={() => navigate(link.path)}
+              >
+                <CardContent className="pt-5 pb-5">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg bg-gradient-to-br ${link.color} text-white`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {link.title}
+                      </p>
+                      <p className="text-xs text-slate-500">{link.description}</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* AI Agent Modules Grid */}

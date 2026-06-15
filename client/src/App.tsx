@@ -7,6 +7,10 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
+import Analytics from "./pages/Analytics";
+import Webhooks from "./pages/Webhooks";
+import Billing from "./pages/Billing";
+import Scheduling from "./pages/Scheduling";
 import ModulesRouter from "./pages/ModulesRouter";
 
 function Router() {
@@ -15,6 +19,10 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/clients" component={Clients} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/webhooks" component={Webhooks} />
+      <Route path="/billing" component={Billing} />
+      <Route path="/scheduling" component={Scheduling} />
       <Route path="/modules/:moduleId" component={ModulesRouter} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
@@ -22,18 +30,10 @@ function Router() {
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
