@@ -1,0 +1,41 @@
+import { useRoute } from "wouter";
+import SpeedToLead from "./modules/SpeedToLead";
+import DatabaseReactivation from "./modules/DatabaseReactivation";
+import Appointments from "./modules/Appointments";
+import VoiceAssistant from "./modules/VoiceAssistant";
+import FollowUpSequences from "./modules/FollowUpSequences";
+import SEOAudit from "./modules/SEOAudit";
+import Reputation from "./modules/Reputation";
+import Content from "./modules/Content";
+import Reporting from "./modules/Reporting";
+import NotFound from "./NotFound";
+
+export default function ModulesRouter() {
+  const [match, params] = useRoute("/modules/:moduleId");
+
+  if (!match) {
+    return <NotFound />;
+  }
+
+  const moduleId = (params as any)?.moduleId;
+
+  const modules: Record<string, React.ComponentType> = {
+    "speed-to-lead": SpeedToLead,
+    "reactivation": DatabaseReactivation,
+    "appointments": Appointments,
+    "voice": VoiceAssistant,
+    "sequences": FollowUpSequences,
+    "seo-audit": SEOAudit,
+    "reputation": Reputation,
+    "content": Content,
+    "reporting": Reporting,
+  };
+
+  const Component = modules[moduleId];
+
+  if (!Component) {
+    return <NotFound />;
+  }
+
+  return <Component />;
+}
