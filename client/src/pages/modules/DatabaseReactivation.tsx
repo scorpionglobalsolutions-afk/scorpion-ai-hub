@@ -59,21 +59,21 @@ export default function DatabaseReactivation() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-background dark:from-slate-950 dark:to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center gap-3">
           <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
             <RotateCcw className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Database Reactivation</h1>
-            <p className="text-slate-600 dark:text-slate-400">Revive dormant leads with personalized sequences</p>
+            <h1 className="text-3xl font-bold text-foreground dark:text-white">Database Reactivation</h1>
+            <p className="text-muted-foreground dark:text-muted-foreground">Revive dormant leads with personalized sequences</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Upload & Clean Lead List</CardTitle>
                 <CardDescription>Paste CSV data and automatically remove duplicates and invalid entries</CardDescription>
@@ -117,7 +117,7 @@ export default function DatabaseReactivation() {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Generate Reactivation Sequence</CardTitle>
                 <CardDescription>Create personalized multi-step outreach sequences</CardDescription>
@@ -154,24 +154,24 @@ export default function DatabaseReactivation() {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Campaign Tracking</CardTitle>
                 <CardDescription>Monitor reactivation campaign performance</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                  <div className="flex justify-between items-center p-3 bg-background dark:bg-slate-900 rounded-lg">
                     <span className="text-sm font-medium">Sent</span>
-                    <span className="text-lg font-bold text-slate-900 dark:text-white">0</span>
+                    <span className="text-lg font-bold text-foreground dark:text-white">0</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                  <div className="flex justify-between items-center p-3 bg-background dark:bg-slate-900 rounded-lg">
                     <span className="text-sm font-medium">Opened</span>
-                    <span className="text-lg font-bold text-slate-900 dark:text-white">0%</span>
+                    <span className="text-lg font-bold text-foreground dark:text-white">0%</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                  <div className="flex justify-between items-center p-3 bg-background dark:bg-slate-900 rounded-lg">
                     <span className="text-sm font-medium">Responded</span>
-                    <span className="text-lg font-bold text-slate-900 dark:text-white">0</span>
+                    <span className="text-lg font-bold text-foreground dark:text-white">0</span>
                   </div>
                 </div>
               </CardContent>
@@ -179,7 +179,7 @@ export default function DatabaseReactivation() {
           </div>
 
           <div>
-            <Card className="border-slate-200 dark:border-slate-800 sticky top-6">
+            <Card className="border-border dark:border-slate-800 sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Sequence Preview</CardTitle>
                 <CardDescription>AI-generated outreach</CardDescription>
@@ -187,8 +187,8 @@ export default function DatabaseReactivation() {
               <CardContent>
                 {generatedSequence ? (
                   <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 max-h-96 overflow-y-auto">
-                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                    <div className="p-4 bg-background dark:bg-slate-900 rounded-lg border border-border dark:border-slate-700 max-h-96 overflow-y-auto">
+                      <p className="text-sm text-foreground dark:text-slate-300 whitespace-pre-wrap">
                         {generatedSequence}
                       </p>
                     </div>
@@ -205,8 +205,8 @@ export default function DatabaseReactivation() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <AlertCircle className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <AlertCircle className="w-8 h-8 text-muted-foreground dark:text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       Sequences will appear here
                     </p>
                   </div>

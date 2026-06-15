@@ -59,21 +59,21 @@ export default function FollowUpSequences() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-background dark:from-slate-950 dark:to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center gap-3">
           <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 text-white">
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Multi-Channel Follow-Up</h1>
-            <p className="text-slate-600 dark:text-slate-400">Build persistent outreach sequences</p>
+            <h1 className="text-3xl font-bold text-foreground dark:text-white">Multi-Channel Follow-Up</h1>
+            <p className="text-muted-foreground dark:text-muted-foreground">Build persistent outreach sequences</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Sequence Builder</CardTitle>
                 <CardDescription>Create multi-step email and SMS sequences</CardDescription>
@@ -90,7 +90,7 @@ export default function FollowUpSequences() {
                   />
                 </div>
 
-                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                <div className="border-t border-border dark:border-slate-700 pt-4">
                   <h3 className="font-medium mb-3">Add Sequence Step</h3>
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
@@ -100,7 +100,7 @@ export default function FollowUpSequences() {
                         id="channel"
                         value={currentChannel}
                         onChange={(e) => setCurrentChannel(e.target.value as "email" | "sms")}
-                        className="mt-2 w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900"
+                        className="mt-2 w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-card dark:bg-slate-900"
                       >
                         <option value="email">Email</option>
                         <option value="sms">SMS</option>
@@ -140,7 +140,7 @@ export default function FollowUpSequences() {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Sequence Steps ({steps.length})</CardTitle>
                 <CardDescription>Your multi-channel follow-up flow</CardDescription>
@@ -148,17 +148,17 @@ export default function FollowUpSequences() {
               <CardContent>
                 {steps.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       No steps added yet. Generate your first step above.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {steps.map((step, idx) => (
-                      <div key={step.id} className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                      <div key={step.id} className="p-4 bg-background dark:bg-slate-900 rounded-lg border border-border dark:border-slate-700">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <p className="font-medium text-slate-900 dark:text-white">
+                            <p className="font-medium text-foreground dark:text-white">
                               Step {idx + 1}: {step.channel.toUpperCase()} (Day {step.delay})
                             </p>
                           </div>
@@ -170,7 +170,7 @@ export default function FollowUpSequences() {
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2">
                           {step.content}
                         </p>
                       </div>
@@ -182,26 +182,26 @@ export default function FollowUpSequences() {
           </div>
 
           <div>
-            <Card className="border-slate-200 dark:border-slate-800 sticky top-6">
+            <Card className="border-border dark:border-slate-800 sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Sequence Summary</CardTitle>
                 <CardDescription>Overview</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between p-2 bg-slate-50 dark:bg-slate-900 rounded">
+                  <div className="flex justify-between p-2 bg-background dark:bg-slate-900 rounded">
                     <span>Total Steps</span>
                     <span className="font-bold">{steps.length}</span>
                   </div>
-                  <div className="flex justify-between p-2 bg-slate-50 dark:bg-slate-900 rounded">
+                  <div className="flex justify-between p-2 bg-background dark:bg-slate-900 rounded">
                     <span>Email Steps</span>
                     <span className="font-bold">{steps.filter((s) => s.channel === "email").length}</span>
                   </div>
-                  <div className="flex justify-between p-2 bg-slate-50 dark:bg-slate-900 rounded">
+                  <div className="flex justify-between p-2 bg-background dark:bg-slate-900 rounded">
                     <span>SMS Steps</span>
                     <span className="font-bold">{steps.filter((s) => s.channel === "sms").length}</span>
                   </div>
-                  <div className="flex justify-between p-2 bg-slate-50 dark:bg-slate-900 rounded">
+                  <div className="flex justify-between p-2 bg-background dark:bg-slate-900 rounded">
                     <span>Total Duration</span>
                     <span className="font-bold">
                       {Math.max(0, ...steps.map((s) => s.delay))} days

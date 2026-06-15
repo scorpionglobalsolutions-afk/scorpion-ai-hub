@@ -50,14 +50,14 @@ export default function Clients() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-background dark:from-slate-950 dark:to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-foreground dark:text-white">
               Client Management
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-muted-foreground dark:text-muted-foreground mt-2">
               Manage all your client accounts and campaigns
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function Clients() {
         </div>
 
         {showForm && (
-          <Card className="mb-8 border-slate-200 dark:border-slate-800">
+          <Card className="mb-8 border-border dark:border-slate-800">
             <CardHeader>
               <CardTitle>Add New Client</CardTitle>
             </CardHeader>
@@ -171,7 +171,7 @@ export default function Clients() {
             {clients.map((client: any) => (
               <Card
                 key={client.id}
-                className="border-slate-200 dark:border-slate-800 hover:shadow-lg transition-shadow cursor-pointer"
+                className="border-border dark:border-slate-800 hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => navigate(`/clients/${client.id}`)}
               >
                 <CardHeader>
@@ -179,7 +179,7 @@ export default function Clients() {
                     <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400">
                       <Building2 className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded capitalize">
+                    <span className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground bg-secondary dark:bg-slate-800 px-2 py-1 rounded capitalize">
                       {client.status}
                     </span>
                   </div>
@@ -190,17 +190,17 @@ export default function Clients() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {client.email && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       <span className="font-medium">Email:</span> {client.email}
                     </p>
                   )}
                   {client.phone && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       <span className="font-medium">Phone:</span> {client.phone}
                     </p>
                   )}
                   {client.website && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       <span className="font-medium">Website:</span>{" "}
                       <a
                         href={client.website}
@@ -227,10 +227,10 @@ export default function Clients() {
             ))}
           </div>
         ) : (
-          <Card className="border-slate-200 dark:border-slate-800">
+          <Card className="border-border dark:border-slate-800">
             <CardContent className="text-center py-12">
-              <Building2 className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-600 dark:text-slate-400 mb-4">
+              <Building2 className="w-12 h-12 text-muted-foreground dark:text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                 No clients yet. Create your first client to get started.
               </p>
               <Button

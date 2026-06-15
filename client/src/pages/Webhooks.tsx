@@ -117,9 +117,9 @@ export default function Webhooks() {
   const webhooks = webhooksList || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white backdrop-blur">
+      <div className="border-b border-border bg-card backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -128,13 +128,13 @@ export default function Webhooks() {
                 Back
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 text-white">
                     <Webhook className="w-6 h-6" />
                   </div>
                   Webhook Integrations
                 </h1>
-                <p className="text-slate-600 mt-1">
+                <p className="text-muted-foreground mt-1">
                   Receive leads and events from external platforms automatically
                 </p>
               </div>
@@ -153,7 +153,7 @@ export default function Webhooks() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Create Webhook Form */}
         {showCreate && (
-          <Card className="border-slate-200 mb-8 border-green-200 bg-green-50/30">
+          <Card className="border-border mb-8 border-green-200 bg-green-50/30">
             <CardHeader>
               <CardTitle>Create New Webhook</CardTitle>
               <CardDescription>Set up a new webhook endpoint to receive events from external platforms</CardDescription>
@@ -193,7 +193,7 @@ export default function Webhooks() {
                       onChange={(e) => setEvents(e.target.value)}
                       className="mt-1"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Comma-separated event types</p>
+                    <p className="text-xs text-muted-foreground mt-1">Comma-separated event types</p>
                   </div>
                   <Button
                     className="bg-gradient-to-r from-green-600 to-emerald-600"
@@ -203,9 +203,9 @@ export default function Webhooks() {
                     {createMutation.isPending ? "Creating..." : "Create Webhook"}
                   </Button>
                 </div>
-                <div className="space-y-4 bg-white/60 p-4 rounded-lg border border-green-100">
-                  <h4 className="font-semibold text-slate-800 text-sm">How It Works</h4>
-                  <ol className="space-y-2 text-sm text-slate-600">
+                <div className="space-y-4 bg-card/60 p-4 rounded-lg border border-green-100">
+                  <h4 className="font-semibold text-foreground text-sm">How It Works</h4>
+                  <ol className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex gap-2">
                       <span className="font-bold text-green-600">1.</span>
                       Create a webhook and copy the generated URL
@@ -231,16 +231,16 @@ export default function Webhooks() {
 
         {/* Active Webhooks */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">
-            Your Webhooks {webhooks.length > 0 && <span className="text-sm font-normal text-slate-500">({webhooks.length})</span>}
+          <h2 className="text-xl font-bold text-foreground mb-4">
+            Your Webhooks {webhooks.length > 0 && <span className="text-sm font-normal text-muted-foreground">({webhooks.length})</span>}
           </h2>
 
           {webhooks.length === 0 ? (
-            <Card className="border-slate-200 border-dashed">
+            <Card className="border-border border-dashed">
               <CardContent className="pt-8 pb-8 text-center">
                 <Webhook className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">No Webhooks Yet</h3>
-                <p className="text-slate-500 mb-4">Create your first webhook to start receiving leads from external platforms.</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Webhooks Yet</h3>
+                <p className="text-muted-foreground mb-4">Create your first webhook to start receiving leads from external platforms.</p>
                 <Button
                   className="bg-gradient-to-r from-green-600 to-emerald-600"
                   onClick={() => setShowCreate(true)}
@@ -253,22 +253,22 @@ export default function Webhooks() {
           ) : (
             <div className="space-y-4">
               {webhooks.map((webhook: any) => (
-                <Card key={webhook.id} className={`border-slate-200 ${!webhook.isActive ? "opacity-60" : ""}`}>
+                <Card key={webhook.id} className={`border-border ${!webhook.isActive ? "opacity-60" : ""}`}>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${webhook.isActive ? "bg-green-100" : "bg-slate-100"}`}>
+                        <div className={`p-2 rounded-lg ${webhook.isActive ? "bg-green-100" : "bg-secondary"}`}>
                           {webhook.isActive ? (
                             <CheckCircle className="w-5 h-5 text-green-600" />
                           ) : (
-                            <XCircle className="w-5 h-5 text-slate-400" />
+                            <XCircle className="w-5 h-5 text-muted-foreground" />
                           )}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-900">{webhook.name}</p>
+                          <p className="font-semibold text-foreground">{webhook.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <Globe className="w-3 h-3 text-slate-400" />
-                            <code className="text-xs text-slate-500 font-mono truncate max-w-[400px]">{webhook.url}</code>
+                            <Globe className="w-3 h-3 text-muted-foreground" />
+                            <code className="text-xs text-muted-foreground font-mono truncate max-w-[400px]">{webhook.url}</code>
                             <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => copyToClipboard(webhook.url)}>
                               <Copy className="w-3 h-3" />
                             </Button>
@@ -279,14 +279,14 @@ export default function Webhooks() {
                         <div className="text-right">
                           {webhook.lastTriggeredAt ? (
                             <>
-                              <p className="text-sm text-slate-600 flex items-center gap-1">
+                              <p className="text-sm text-muted-foreground flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 {new Date(webhook.lastTriggeredAt).toLocaleString()}
                               </p>
-                              <p className="text-xs text-slate-500">Last triggered</p>
+                              <p className="text-xs text-muted-foreground">Last triggered</p>
                             </>
                           ) : (
-                            <p className="text-xs text-slate-400">Never triggered</p>
+                            <p className="text-xs text-muted-foreground">Never triggered</p>
                           )}
                         </div>
                         <div className="flex gap-2">
@@ -337,7 +337,7 @@ export default function Webhooks() {
         </div>
 
         {/* Event Templates */}
-        <Card className="border-slate-200">
+        <Card className="border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-500" />
@@ -348,13 +348,13 @@ export default function Webhooks() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {eventTemplates.map((template) => (
-                <div key={template.event} className="p-4 border border-slate-200 rounded-lg hover:border-green-300 hover:bg-green-50/30 transition-all">
+                <div key={template.event} className="p-4 border border-border rounded-lg hover:border-green-300 hover:bg-green-50/30 transition-all">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield className="w-4 h-4 text-green-600" />
-                    <p className="font-medium text-slate-900 text-sm">{template.name}</p>
+                    <p className="font-medium text-foreground text-sm">{template.name}</p>
                   </div>
-                  <code className="text-xs text-slate-500 font-mono">{template.event}</code>
-                  <p className="text-xs text-slate-500 mt-2">{template.description}</p>
+                  <code className="text-xs text-muted-foreground font-mono">{template.event}</code>
+                  <p className="text-xs text-muted-foreground mt-2">{template.description}</p>
                 </div>
               ))}
             </div>

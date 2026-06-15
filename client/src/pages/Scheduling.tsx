@@ -119,9 +119,9 @@ export default function Scheduling() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white backdrop-blur">
+      <div className="border-b border-border bg-card backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -130,13 +130,13 @@ export default function Scheduling() {
                 Back
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white">
                     <Timer className="w-6 h-6" />
                   </div>
                   Campaign Scheduling
                 </h1>
-                <p className="text-slate-600 mt-1">
+                <p className="text-muted-foreground mt-1">
                   Automate campaigns to run on a daily, weekly, or monthly schedule
                 </p>
               </div>
@@ -155,31 +155,31 @@ export default function Scheduling() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <Play className="w-5 h-5 text-green-600" />
-                <p className="text-sm text-slate-600">Active Schedules</p>
+                <p className="text-sm text-muted-foreground">Active Schedules</p>
               </div>
-              <p className="text-3xl font-bold text-slate-900">{activeSchedules.length}</p>
+              <p className="text-3xl font-bold text-foreground">{activeSchedules.length}</p>
             </CardContent>
           </Card>
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <CheckCircle className="w-5 h-5 text-blue-600" />
-                <p className="text-sm text-slate-600">Total Schedules</p>
+                <p className="text-sm text-muted-foreground">Total Schedules</p>
               </div>
-              <p className="text-3xl font-bold text-slate-900">{schedules.length}</p>
+              <p className="text-3xl font-bold text-foreground">{schedules.length}</p>
             </CardContent>
           </Card>
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <Clock className="w-5 h-5 text-purple-600" />
-                <p className="text-sm text-slate-600">Next Execution</p>
+                <p className="text-sm text-muted-foreground">Next Execution</p>
               </div>
-              <p className="text-lg font-bold text-slate-900">
+              <p className="text-lg font-bold text-foreground">
                 {activeSchedules.length > 0 && activeSchedules[0].nextRunAt
                   ? new Date(activeSchedules[0].nextRunAt).toLocaleString()
                   : "No upcoming runs"}
@@ -190,7 +190,7 @@ export default function Scheduling() {
 
         {/* Create Schedule Form */}
         {showCreate && (
-          <Card className="border-slate-200 mb-8 border-purple-200 bg-purple-50/30">
+          <Card className="border-border mb-8 border-purple-200 bg-purple-50/30">
             <CardHeader>
               <CardTitle>Schedule New Campaign</CardTitle>
               <CardDescription>Set up a campaign to run automatically on a recurring schedule</CardDescription>
@@ -248,16 +248,16 @@ export default function Scheduling() {
 
         {/* Scheduled Campaigns */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">
-            Scheduled Campaigns {schedules.length > 0 && <span className="text-sm font-normal text-slate-500">({schedules.length})</span>}
+          <h2 className="text-xl font-bold text-foreground mb-4">
+            Scheduled Campaigns {schedules.length > 0 && <span className="text-sm font-normal text-muted-foreground">({schedules.length})</span>}
           </h2>
 
           {schedules.length === 0 ? (
-            <Card className="border-slate-200 border-dashed">
+            <Card className="border-border border-dashed">
               <CardContent className="pt-8 pb-8 text-center">
                 <Timer className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">No Scheduled Campaigns</h3>
-                <p className="text-slate-500 mb-4">Schedule your first campaign to automate lead generation and outreach.</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Scheduled Campaigns</h3>
+                <p className="text-muted-foreground mb-4">Schedule your first campaign to automate lead generation and outreach.</p>
                 <Button
                   className="bg-gradient-to-r from-purple-600 to-pink-600"
                   onClick={() => setShowCreate(true)}
@@ -270,7 +270,7 @@ export default function Scheduling() {
           ) : (
             <div className="space-y-4">
               {schedules.map((schedule: any) => (
-                <Card key={schedule.id} className={`border-slate-200 ${!schedule.isActive ? "opacity-60" : ""}`}>
+                <Card key={schedule.id} className={`border-border ${!schedule.isActive ? "opacity-60" : ""}`}>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -278,19 +278,19 @@ export default function Scheduling() {
                           {getTypeIcon(schedule.frequency)}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-900">
+                          <p className="font-semibold text-foreground">
                             {schedule.clientName || `Campaign #${schedule.campaignId}`}
                           </p>
                           <div className="flex items-center gap-4 mt-1">
-                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               {schedule.frequency}
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-muted-foreground">
                               Next: {schedule.nextRunAt ? new Date(schedule.nextRunAt).toLocaleString() : "Not set"}
                             </span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                              schedule.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                              schedule.isActive ? "bg-green-100 text-green-700" : "bg-secondary text-muted-foreground"
                             }`}>
                               {schedule.isActive ? "Active" : "Paused"}
                             </span>
@@ -353,7 +353,7 @@ export default function Scheduling() {
         </div>
 
         {/* How Scheduling Works */}
-        <Card className="border-slate-200">
+        <Card className="border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-500" />
@@ -367,22 +367,22 @@ export default function Scheduling() {
                 <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
                   <Clock className="w-6 h-6 text-purple-600" />
                 </div>
-                <h4 className="font-semibold text-slate-900 mb-2">Set a Schedule</h4>
-                <p className="text-sm text-slate-600">Choose daily, weekly, or monthly frequency for your campaigns</p>
+                <h4 className="font-semibold text-foreground mb-2">Set a Schedule</h4>
+                <p className="text-sm text-muted-foreground">Choose daily, weekly, or monthly frequency for your campaigns</p>
               </div>
               <div className="text-center p-4">
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
                   <Zap className="w-6 h-6 text-blue-600" />
                 </div>
-                <h4 className="font-semibold text-slate-900 mb-2">Auto-Execute</h4>
-                <p className="text-sm text-slate-600">Campaigns run automatically at the scheduled time with AI-powered content</p>
+                <h4 className="font-semibold text-foreground mb-2">Auto-Execute</h4>
+                <p className="text-sm text-muted-foreground">Campaigns run automatically at the scheduled time with AI-powered content</p>
               </div>
               <div className="text-center p-4">
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
-                <h4 className="font-semibold text-slate-900 mb-2">Track Results</h4>
-                <p className="text-sm text-slate-600">Monitor execution logs, leads generated, and conversion metrics</p>
+                <h4 className="font-semibold text-foreground mb-2">Track Results</h4>
+                <p className="text-sm text-muted-foreground">Monitor execution logs, leads generated, and conversion metrics</p>
               </div>
             </div>
           </CardContent>

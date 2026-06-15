@@ -325,8 +325,8 @@ export default function SEOAudit() {
             <Search className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Digital Presence Snapshot</h1>
-            <p className="text-slate-500 mt-1">Generate comprehensive Vendasta-style audit reports for your clients</p>
+            <h1 className="text-3xl font-bold text-foreground">Digital Presence Snapshot</h1>
+            <p className="text-muted-foreground mt-1">Generate comprehensive Vendasta-style audit reports for your clients</p>
           </div>
         </div>
 
@@ -335,7 +335,7 @@ export default function SEOAudit() {
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
-                <Label className="text-sm font-medium text-slate-700 mb-1 block">Business Name *</Label>
+                <Label className="text-sm font-medium text-foreground mb-1 block">Business Name *</Label>
                 <Input
                   placeholder="e.g. Pool Buddies LLC"
                   value={businessName}
@@ -343,7 +343,7 @@ export default function SEOAudit() {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700 mb-1 block">Website URL</Label>
+                <Label className="text-sm font-medium text-foreground mb-1 block">Website URL</Label>
                 <Input
                   placeholder="https://example.com"
                   value={website}
@@ -351,7 +351,7 @@ export default function SEOAudit() {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700 mb-1 block">Industry</Label>
+                <Label className="text-sm font-medium text-foreground mb-1 block">Industry</Label>
                 <Input
                   placeholder="e.g. Pool Services"
                   value={industry}
@@ -359,7 +359,7 @@ export default function SEOAudit() {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700 mb-1 block">Location</Label>
+                <Label className="text-sm font-medium text-foreground mb-1 block">Location</Label>
                 <Input
                   placeholder="e.g. Queen Creek, AZ"
                   value={location}
@@ -382,7 +382,7 @@ export default function SEOAudit() {
             </div>
 
             {/* Manual Overrides */}
-            <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="mt-4 pt-4 border-t border-border">
               <button
                 onClick={() => setShowOverrides(!showOverrides)}
                 className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
@@ -392,17 +392,17 @@ export default function SEOAudit() {
               {showOverrides && (
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label className="text-sm text-slate-600 mb-1 block">Override Review Count</Label>
+                    <Label className="text-sm text-muted-foreground mb-1 block">Override Review Count</Label>
                     <Input
                       type="number"
                       placeholder="e.g. 38 (from Google)"
                       value={overrideReviewCount}
                       onChange={(e) => setOverrideReviewCount(e.target.value)}
                     />
-                    <p className="text-xs text-slate-400 mt-1">If you know the real review count from Google</p>
+                    <p className="text-xs text-muted-foreground mt-1">If you know the real review count from Google</p>
                   </div>
                   <div>
-                    <Label className="text-sm text-slate-600 mb-1 block">Override Rating</Label>
+                    <Label className="text-sm text-muted-foreground mb-1 block">Override Rating</Label>
                     <Input
                       type="number"
                       step="0.1"
@@ -412,10 +412,10 @@ export default function SEOAudit() {
                       value={overrideRating}
                       onChange={(e) => setOverrideRating(e.target.value)}
                     />
-                    <p className="text-xs text-slate-400 mt-1">If you know the real Google rating</p>
+                    <p className="text-xs text-muted-foreground mt-1">If you know the real Google rating</p>
                   </div>
                   <div className="flex items-end">
-                    <p className="text-xs text-slate-500 bg-blue-50 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
                       <strong>Tip:</strong> Use overrides when you know the real data differs from what our scraper finds. The report will use your values instead.
                     </p>
                   </div>
@@ -438,13 +438,13 @@ export default function SEOAudit() {
                   <img
                     src={brandColors.logo}
                     alt="Logo"
-                    className="w-16 h-16 mx-auto mb-4 rounded-lg bg-white p-2"
+                    className="w-16 h-16 mx-auto mb-4 rounded-lg bg-card p-2"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                   />
                 )}
                 <h2 className="text-2xl font-bold mb-2">{businessName}</h2>
                 <p className="opacity-80 mb-6">Digital Presence Snapshot Report</p>
-                <div className="w-28 h-28 mx-auto rounded-full border-4 border-white/50 bg-white/20 flex items-center justify-center">
+                <div className="w-28 h-28 mx-auto rounded-full border-4 border-white/50 bg-card/20 flex items-center justify-center">
                   <span className="text-5xl font-bold">{report.overallGrade || "C"}</span>
                 </div>
                 <p className="mt-4 text-lg">Overall Score: {report.overallScore || 55}/100</p>
@@ -458,8 +458,8 @@ export default function SEOAudit() {
             {report.executiveSummary && (
               <Card className="border-0 shadow-md">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Executive Summary</h3>
-                  <p className="text-slate-600 leading-relaxed">{report.executiveSummary}</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">Executive Summary</h3>
+                  <p className="text-muted-foreground leading-relaxed">{report.executiveSummary}</p>
                 </CardContent>
               </Card>
             )}
@@ -480,9 +480,9 @@ export default function SEOAudit() {
                         <Icon className="w-5 h-5" style={{ color }} />
                       </div>
                       <GradeBadge grade={cat.grade} size="md" />
-                      <p className="mt-2 text-sm font-medium text-slate-700">{cat.name}</p>
+                      <p className="mt-2 text-sm font-medium text-foreground">{cat.name}</p>
                       <ScoreBar score={cat.score} color={color} />
-                      <p className="mt-1 text-xs text-slate-500">{cat.score}/100</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{cat.score}/100</p>
                     </CardContent>
                   </Card>
                 );
@@ -507,7 +507,7 @@ export default function SEOAudit() {
                         </div>
                         <div>
                           <CardTitle className="text-lg">{cat.name}</CardTitle>
-                          <p className="text-sm text-slate-500">Score: {cat.score}/100</p>
+                          <p className="text-sm text-muted-foreground">Score: {cat.score}/100</p>
                         </div>
                       </div>
                       <GradeBadge grade={cat.grade} size="lg" />
@@ -516,15 +516,15 @@ export default function SEOAudit() {
                   <CardContent className="space-y-4">
                     {/* Metrics Table */}
                     {cat.metrics && cat.metrics.length > 0 && (
-                      <div className="bg-slate-50 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-slate-700 mb-3">Performance Metrics</h4>
+                      <div className="bg-background rounded-lg p-4">
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Performance Metrics</h4>
                         <div className="space-y-3">
                           {cat.metrics.map((m: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between py-2 border-b border-slate-200 last:border-0">
-                              <span className="text-sm text-slate-600">{m.label}</span>
+                            <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                              <span className="text-sm text-muted-foreground">{m.label}</span>
                               <div className="flex items-center gap-4">
-                                <span className="font-semibold text-slate-900">{m.value}</span>
-                                {m.benchmark && <span className="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded">Avg: {m.benchmark}</span>}
+                                <span className="font-semibold text-foreground">{m.value}</span>
+                                {m.benchmark && <span className="text-xs text-muted-foreground bg-slate-200 px-2 py-0.5 rounded">Avg: {m.benchmark}</span>}
                                 {m.industryLeader && <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Leader: {m.industryLeader}</span>}
                                 {m.status && (
                                   <Badge variant={m.status === "good" ? "default" : m.status === "warning" ? "secondary" : "destructive"} className="text-xs">
@@ -541,7 +541,7 @@ export default function SEOAudit() {
                     {/* Directories Grid */}
                     {cat.directories && (
                       <div>
-                        <h4 className="text-sm font-semibold text-slate-700 mb-3">
+                        <h4 className="text-sm font-semibold text-foreground mb-3">
                           Directory Presence ({cat.presenceCount || 0}/{cat.totalDirectories || 50} found)
                         </h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -559,7 +559,7 @@ export default function SEOAudit() {
                             </div>
                           ))}
                         </div>
-                        <p className="mt-3 text-sm text-slate-500">
+                        <p className="mt-3 text-sm text-muted-foreground">
                           Accuracy: {cat.accuracyPercent || 0}% of listings have correct information
                         </p>
                       </div>
@@ -569,11 +569,11 @@ export default function SEOAudit() {
                     {cat.platforms && (
                       <div className="space-y-2">
                         {cat.platforms.map((p: any, i: number) => (
-                          <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                          <div key={i} className="flex items-center justify-between p-3 bg-background rounded-lg">
                             <div className="flex items-center gap-3">
-                              <Share2 className="w-4 h-4 text-slate-500" />
+                              <Share2 className="w-4 h-4 text-muted-foreground" />
                               <span className="font-medium text-sm">{p.name}</span>
-                              {p.followers !== "N/A" && <span className="text-xs text-slate-500">{p.followers} followers</span>}
+                              {p.followers !== "N/A" && <span className="text-xs text-muted-foreground">{p.followers} followers</span>}
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant={p.found ? "default" : "destructive"} className="text-xs">
@@ -605,23 +605,23 @@ export default function SEOAudit() {
                     {/* Website Performance */}
                     {cat.performance && (
                       <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="text-center p-4 bg-slate-50 rounded-lg">
+                        <div className="text-center p-4 bg-background rounded-lg">
                           <div className={`text-3xl font-bold ${(cat.performance.mobileScore || 0) >= 70 ? "text-emerald-600" : (cat.performance.mobileScore || 0) >= 50 ? "text-amber-600" : "text-red-600"}`}>
                             {cat.performance.mobileScore}
                           </div>
-                          <p className="text-sm text-slate-500 mt-1">Mobile Score</p>
+                          <p className="text-sm text-muted-foreground mt-1">Mobile Score</p>
                         </div>
-                        <div className="text-center p-4 bg-slate-50 rounded-lg">
+                        <div className="text-center p-4 bg-background rounded-lg">
                           <div className={`text-3xl font-bold ${(cat.performance.desktopScore || 0) >= 70 ? "text-emerald-600" : (cat.performance.desktopScore || 0) >= 50 ? "text-amber-600" : "text-red-600"}`}>
                             {cat.performance.desktopScore}
                           </div>
-                          <p className="text-sm text-slate-500 mt-1">Desktop Score</p>
+                          <p className="text-sm text-muted-foreground mt-1">Desktop Score</p>
                         </div>
                         <div className="col-span-2 space-y-2 text-sm">
-                          <div className="flex justify-between py-1 border-b border-slate-100"><span className="text-slate-500">Page Speed</span><span className="font-medium">{cat.performance.pageSpeed}</span></div>
-                          <div className="flex justify-between py-1 border-b border-slate-100"><span className="text-slate-500">LCP</span><span className="font-medium">{cat.performance.lcp}</span></div>
-                          <div className="flex justify-between py-1 border-b border-slate-100"><span className="text-slate-500">CLS</span><span className="font-medium">{cat.performance.cls}</span></div>
-                          <div className="flex justify-between py-1"><span className="text-slate-500">FID</span><span className="font-medium">{cat.performance.fid}</span></div>
+                          <div className="flex justify-between py-1 border-b border-border"><span className="text-muted-foreground">Page Speed</span><span className="font-medium">{cat.performance.pageSpeed}</span></div>
+                          <div className="flex justify-between py-1 border-b border-border"><span className="text-muted-foreground">LCP</span><span className="font-medium">{cat.performance.lcp}</span></div>
+                          <div className="flex justify-between py-1 border-b border-border"><span className="text-muted-foreground">CLS</span><span className="font-medium">{cat.performance.cls}</span></div>
+                          <div className="flex justify-between py-1"><span className="text-muted-foreground">FID</span><span className="font-medium">{cat.performance.fid}</span></div>
                         </div>
                       </div>
                     )}
@@ -630,18 +630,18 @@ export default function SEOAudit() {
                     {cat.keywords && (
                       <div>
                         <div className="flex justify-between items-center mb-3">
-                          <h4 className="text-sm font-semibold text-slate-700">Keyword Opportunities</h4>
-                          <span className="text-xs text-slate-500">
+                          <h4 className="text-sm font-semibold text-foreground">Keyword Opportunities</h4>
+                          <span className="text-xs text-muted-foreground">
                             {(cat.totalImpressions || 0).toLocaleString()} impressions / {(cat.totalClicks || 0).toLocaleString()} clicks monthly
                           </span>
                         </div>
                         <div className="space-y-2">
                           {cat.keywords.map((k: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg text-sm">
+                            <div key={i} className="flex items-center justify-between p-2 bg-background rounded-lg text-sm">
                               <span className="font-medium">"{k.keyword}"</span>
-                              <div className="flex gap-4 text-xs text-slate-500">
+                              <div className="flex gap-4 text-xs text-muted-foreground">
                                 <span>{(k.impressions || 0).toLocaleString()} imp.</span>
-                                <span className="font-semibold text-slate-700">{(k.clicks || 0).toLocaleString()} clicks</span>
+                                <span className="font-semibold text-foreground">{(k.clicks || 0).toLocaleString()} clicks</span>
                               </div>
                             </div>
                           ))}
@@ -655,10 +655,10 @@ export default function SEOAudit() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {cat.findings?.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-semibold text-slate-700 mb-2">Key Findings</h4>
+                          <h4 className="text-sm font-semibold text-foreground mb-2">Key Findings</h4>
                           <ul className="space-y-1">
                             {cat.findings.map((f: string, i: number) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                              <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                                 <AlertTriangle className="w-3 h-3 mt-1 text-amber-500 shrink-0" />
                                 {f}
                               </li>
@@ -668,10 +668,10 @@ export default function SEOAudit() {
                       )}
                       {cat.recommendations?.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-semibold text-slate-700 mb-2">Recommendations</h4>
+                          <h4 className="text-sm font-semibold text-foreground mb-2">Recommendations</h4>
                           <ul className="space-y-1">
                             {cat.recommendations.map((r: string, i: number) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                              <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                                 <CheckCircle2 className="w-3 h-3 mt-1 text-blue-500 shrink-0" />
                                 {r}
                               </li>
@@ -689,14 +689,14 @@ export default function SEOAudit() {
             {report.topPriorities?.length > 0 && (
               <Card className="border-0 shadow-md" style={{ borderLeft: `4px solid ${brandColors?.primary || "#2563eb"}` }}>
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Top Priorities</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Top Priorities</h3>
                   <ol className="space-y-3">
                     {report.topPriorities.map((p: string, i: number) => (
                       <li key={i} className="flex items-start gap-3">
                         <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold shrink-0">
                           {i + 1}
                         </span>
-                        <span className="text-slate-700">{p}</span>
+                        <span className="text-foreground">{p}</span>
                       </li>
                     ))}
                   </ol>
@@ -724,8 +724,8 @@ export default function SEOAudit() {
           <Card className="border-0 shadow-md">
             <CardContent className="p-12 text-center">
               <Globe className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-              <h3 className="text-xl font-semibold text-slate-700 mb-2">Generate a Snapshot Report</h3>
-              <p className="text-slate-500 max-w-md mx-auto">
+              <h3 className="text-xl font-semibold text-foreground mb-2">Generate a Snapshot Report</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
                 Enter a business name and website URL above to generate a comprehensive digital presence
                 audit covering SEO, listings, reviews, social media, website performance, and advertising opportunities.
               </p>
@@ -738,12 +738,12 @@ export default function SEOAudit() {
           <Card className="border-0 shadow-md">
             <CardContent className="p-12 text-center">
               <Loader2 className="w-12 h-12 mx-auto text-blue-500 animate-spin mb-4" />
-              <h3 className="text-xl font-semibold text-slate-700 mb-2">Analyzing Digital Presence...</h3>
-              <p className="text-slate-500 mb-4">
+              <h3 className="text-xl font-semibold text-foreground mb-2">Analyzing Digital Presence...</h3>
+              <p className="text-muted-foreground mb-4">
                 Scraping real data from the business website, Google Business Profile, directories, and social media.
                 This may take 30-60 seconds.
               </p>
-              <div className="max-w-md mx-auto space-y-2 text-left text-sm text-slate-500">
+              <div className="max-w-md mx-auto space-y-2 text-left text-sm text-muted-foreground">
                 <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" /> Fetching website content & meta tags</div>
                 <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" /> Searching Google Business Profile</div>
                 <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" /> Checking directory listings</div>

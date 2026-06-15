@@ -148,31 +148,52 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur">
+      <div className="border-b border-border bg-card/80 backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Scorpion AI Operations Hub
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-2">
-                Welcome back, {user?.name || "Agent"}. Manage all your AI-powered marketing campaigns from one elegant dashboard.
-              </p>
+            <div className="flex items-center gap-4">
+              <img
+                src="/manus-storage/scorpion_logo_d2ffa99c.png"
+                alt="Scorpion Global Solutions"
+                className="h-12 w-auto"
+              />
+              <div>
+                <h1
+                  className="text-3xl font-extrabold"
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    background: "linear-gradient(135deg, oklch(0.72 0.12 75) 0%, oklch(0.82 0.10 75) 60%, oklch(0.55 0.18 250) 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text"
+                  }}
+                >
+                  OmniScorp
+                </h1>
+                <p className="text-muted-foreground text-sm mt-0.5">
+                  Welcome back, {user?.name || "Agent"}. Your AI-powered marketing command center.
+                </p>
+              </div>
             </div>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => navigate("/clients")}
-                className="gap-2"
+                className="gap-2 border-border"
               >
                 <Users className="w-4 h-4" />
                 Clients
               </Button>
               <Button
                 onClick={() => navigate("/clients")}
-                className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="gap-2"
+                style={{
+                  background: "linear-gradient(135deg, oklch(0.72 0.12 75) 0%, oklch(0.62 0.10 75) 100%)",
+                  color: "oklch(0.12 0.005 285)",
+                  border: "none"
+                }}
               >
                 <Plus className="w-4 h-4" />
                 New Client
@@ -185,49 +206,57 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-slate-200 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <Card className="border-border hover:shadow-lg hover:border-[oklch(0.72_0.12_75)]/40 transition-all">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Active Clients
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">
+              <div className="text-3xl font-bold text-foreground">
                 {clientsLoading ? <Spinner /> : clients?.length || 0}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Managed accounts
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <Card className="border-border hover:shadow-lg hover:border-[oklch(0.72_0.12_75)]/40 transition-all">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 AI Agents Active
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <div
+                className="text-3xl font-bold"
+                style={{
+                  background: "linear-gradient(135deg, oklch(0.72 0.12 75) 0%, oklch(0.55 0.18 250) 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text"
+                }}
+              >
                 10
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Modules available
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <Card className="border-border hover:shadow-lg hover:border-[oklch(0.72_0.12_75)]/40 transition-all">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Recent Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">
+              <div className="text-3xl font-bold text-foreground">
                 {activityLoading ? <Spinner /> : activity?.length || 0}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Last 5 actions
               </p>
             </CardContent>
@@ -241,7 +270,7 @@ export default function Dashboard() {
             return (
               <Card
                 key={link.path}
-                className="border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer group"
+                className="border-border hover:shadow-lg hover:border-[oklch(0.72_0.12_75)]/50 transition-all cursor-pointer group"
                 onClick={() => navigate(link.path)}
               >
                 <CardContent className="pt-5 pb-5">
@@ -250,12 +279,12 @@ export default function Dashboard() {
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+                      <p className="font-semibold text-sm text-foreground group-hover:text-[oklch(0.72_0.12_75)] transition-colors">
                         {link.title}
                       </p>
-                      <p className="text-xs text-slate-500">{link.description}</p>
+                      <p className="text-xs text-muted-foreground">{link.description}</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-[oklch(0.72_0.12_75)] transition-colors" />
                   </div>
                 </CardContent>
               </Card>
@@ -266,10 +295,10 @@ export default function Dashboard() {
         {/* AI Agent Modules Grid */}
         <div className="mb-12">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2" style={{ fontFamily: "'Montserrat', sans-serif" }}>
               AI Agent Modules
             </h2>
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-muted-foreground">
               Launch any module to manage campaigns, generate content, and automate client workflows
             </p>
           </div>
@@ -280,7 +309,7 @@ export default function Dashboard() {
               return (
                 <Card
                   key={module.id}
-                  className="border-slate-200 dark:border-slate-800 hover:shadow-xl hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group overflow-hidden"
+                  className="border-border hover:shadow-xl hover:border-[oklch(0.72_0.12_75)]/50 transition-all cursor-pointer group overflow-hidden"
                   onClick={() => navigate(`/modules/${module.id}`)}
                 >
                   <div className={`h-1 bg-gradient-to-r ${module.color}`} />
@@ -289,21 +318,21 @@ export default function Dashboard() {
                       <div className={`p-3 rounded-lg bg-gradient-to-br ${module.color} text-white`}>
                         <Icon className="w-5 h-5" />
                       </div>
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                      <span className="text-xs font-semibold text-muted-foreground bg-secondary px-2 py-1 rounded">
                         Ready
                       </span>
                     </div>
-                    <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <CardTitle className="text-lg text-foreground group-hover:text-[oklch(0.72_0.12_75)] transition-colors">
                       {module.title}
                     </CardTitle>
-                    <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
+                    <CardDescription className="text-sm text-muted-foreground">
                       {module.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button
                       variant="outline"
-                      className="w-full border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      className="w-full border-border hover:border-[oklch(0.72_0.12_75)]/50 hover:text-[oklch(0.72_0.12_75)]"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/modules/${module.id}`);
@@ -320,9 +349,9 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         {activity && activity.length > 0 && (
-          <Card className="border-slate-200 dark:border-slate-800">
+          <Card className="border-border">
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle className="text-foreground">Recent Activity</CardTitle>
               <CardDescription>Latest actions across your account</CardDescription>
             </CardHeader>
             <CardContent>
@@ -330,17 +359,17 @@ export default function Dashboard() {
                 {activity.map((log: any) => (
                   <div
                     key={log.id}
-                    className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800 last:border-0"
+                    className="flex items-center justify-between py-3 border-b border-border last:border-0"
                   >
                     <div>
-                      <p className="text-sm font-medium text-slate-900 dark:text-white capitalize">
+                      <p className="text-sm font-medium text-foreground capitalize">
                         {log.action.replace(/_/g, " ")}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-muted-foreground">
                         {new Date(log.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded capitalize">
+                    <span className="text-xs font-semibold text-muted-foreground bg-secondary px-2 py-1 rounded capitalize">
                       {log.entityType}
                     </span>
                   </div>

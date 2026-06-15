@@ -45,21 +45,21 @@ export default function VoiceAssistant() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-background dark:from-slate-950 dark:to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center gap-3">
           <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
             <Mic className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">AI Voice Assistant</h1>
-            <p className="text-slate-600 dark:text-slate-400">Configure inbound and outbound voice agents</p>
+            <h1 className="text-3xl font-bold text-foreground dark:text-white">AI Voice Assistant</h1>
+            <p className="text-muted-foreground dark:text-muted-foreground">Configure inbound and outbound voice agents</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Create Voice Agent</CardTitle>
                 <CardDescription>Configure script and behavior</CardDescription>
@@ -139,16 +139,16 @@ export default function VoiceAssistant() {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Objection Handling</CardTitle>
                 <CardDescription>AI-generated responses coming soon</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <p className="font-medium text-slate-900 dark:text-white mb-1">Common Objections:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400">
+                  <div className="p-3 bg-background dark:bg-slate-900 rounded-lg border border-border dark:border-slate-700">
+                    <p className="font-medium text-foreground dark:text-white mb-1">Common Objections:</p>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground dark:text-muted-foreground">
                       <li>"I'm not interested"</li>
                       <li>"I don't have time"</li>
                       <li>"What's the cost?"</li>
@@ -161,7 +161,7 @@ export default function VoiceAssistant() {
           </div>
 
           <div>
-            <Card className="border-slate-200 dark:border-slate-800 sticky top-6">
+            <Card className="border-border dark:border-slate-800 sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Active Assistants</CardTitle>
                 <CardDescription>Deployed agents</CardDescription>
@@ -169,17 +169,17 @@ export default function VoiceAssistant() {
               <CardContent>
                 {assistants.length === 0 ? (
                   <div className="text-center py-8">
-                    <AlertCircle className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <AlertCircle className="w-8 h-8 text-muted-foreground dark:text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       No assistants yet
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {assistants.map((asst) => (
-                      <div key={asst.id} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <p className="font-medium text-slate-900 dark:text-white text-sm">{asst.name}</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 capitalize">{asst.type} calls</p>
+                      <div key={asst.id} className="p-3 bg-background dark:bg-slate-900 rounded-lg border border-border dark:border-slate-700">
+                        <p className="font-medium text-foreground dark:text-white text-sm">{asst.name}</p>
+                        <p className="text-xs text-muted-foreground dark:text-muted-foreground capitalize">{asst.type} calls</p>
                         <span className="inline-block mt-2 px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
                           Active
                         </span>

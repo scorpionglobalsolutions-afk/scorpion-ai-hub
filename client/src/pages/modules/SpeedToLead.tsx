@@ -45,7 +45,7 @@ export default function SpeedToLead() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-background dark:from-slate-950 dark:to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -54,10 +54,10 @@ export default function SpeedToLead() {
               <Zap className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-foreground dark:text-white">
                 Speed to Lead
               </h1>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-muted-foreground dark:text-muted-foreground">
                 Instant lead capture with AI-powered responses
               </p>
             </div>
@@ -67,7 +67,7 @@ export default function SpeedToLead() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Form */}
           <div className="lg:col-span-2">
-            <Card className="border-slate-200 dark:border-slate-800">
+            <Card className="border-border dark:border-slate-800">
               <CardHeader>
                 <CardTitle>Generate Lead Response</CardTitle>
                 <CardDescription>
@@ -77,7 +77,7 @@ export default function SpeedToLead() {
               <CardContent className="space-y-6">
                 {/* Lead Information */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-slate-900 dark:text-white">Lead Information</h3>
+                  <h3 className="font-semibold text-foreground dark:text-white">Lead Information</h3>
 
                   <div>
                     <Label htmlFor="leadName">Lead Name *</Label>
@@ -116,7 +116,7 @@ export default function SpeedToLead() {
 
                 {/* Channel Selection */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-slate-900 dark:text-white">Response Channel</h3>
+                  <h3 className="font-semibold text-foreground dark:text-white">Response Channel</h3>
                   <Tabs value={channel} onValueChange={(v) => setChannel(v as "sms" | "email")}>
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="email" className="gap-2">
@@ -167,7 +167,7 @@ export default function SpeedToLead() {
 
           {/* Preview */}
           <div>
-            <Card className="border-slate-200 dark:border-slate-800 sticky top-6">
+            <Card className="border-border dark:border-slate-800 sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Preview</CardTitle>
                 <CardDescription>
@@ -177,8 +177,8 @@ export default function SpeedToLead() {
               <CardContent>
                 {generatedResponse ? (
                   <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                    <div className="p-4 bg-background dark:bg-slate-900 rounded-lg border border-border dark:border-slate-700">
+                      <p className="text-sm text-foreground dark:text-slate-300 whitespace-pre-wrap">
                         {generatedResponse}
                       </p>
                     </div>
@@ -195,7 +195,7 @@ export default function SpeedToLead() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       Generated responses will appear here
                     </p>
                   </div>

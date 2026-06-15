@@ -153,3 +153,13 @@
 - [x] Navigation: Prospect Finder added to Dashboard quick links
 - [x] Route: Registered /prospect-finder route in App.tsx
 - [x] Tests: 25 vitest tests passing across 4 test files
+
+### OmniScorp Rebrand & Theme Update
+- [x] Upload Scorpion Global Solutions logo and make available via CDN
+- [x] Update CSS variables: dark background (oklch 0.13), gold primary (oklch 0.72 0.12 75), blue accent (oklch 0.55 0.18 250)
+- [x] Update global fonts: Inter + Montserrat from Google Fonts
+- [x] Rename app from "Scorpion AI Hub" to "OmniScorp" throughout (Home, Dashboard, DashboardLayout, index.html)
+- [x] Update sidebar logo and branding with Scorpion logo + gold OmniScorp wordmark
+- [x] Update page title and meta tags in index.html
+- [x] Switch ThemeProvider to dark mode by default
+- [x] All pages verified with new brand theme

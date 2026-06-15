@@ -101,15 +101,15 @@ export default function Billing() {
       case "paid": return "bg-green-100 text-green-700";
       case "sent": return "bg-blue-100 text-blue-700";
       case "overdue": return "bg-red-100 text-red-700";
-      case "cancelled": return "bg-slate-100 text-slate-500";
+      case "cancelled": return "bg-secondary text-muted-foreground";
       default: return "bg-yellow-100 text-yellow-700";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white backdrop-blur">
+      <div className="border-b border-border bg-card backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -118,13 +118,13 @@ export default function Billing() {
                 Back
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 text-white">
                     <CreditCard className="w-6 h-6" />
                   </div>
                   Billing & Invoices
                 </h1>
-                <p className="text-slate-600 mt-1">
+                <p className="text-muted-foreground mt-1">
                   Track client billing, generate invoices, and monitor revenue
                 </p>
               </div>
@@ -143,47 +143,47 @@ export default function Billing() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Revenue KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <DollarSign className="w-5 h-5 text-green-600" />
-                <p className="text-sm text-slate-600">Total Revenue</p>
+                <p className="text-sm text-muted-foreground">Total Revenue</p>
               </div>
-              <p className="text-3xl font-bold text-slate-900">${totalRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-foreground">${totalRevenue.toLocaleString()}</p>
             </CardContent>
           </Card>
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <p className="text-sm text-slate-600">Paid</p>
+                <p className="text-sm text-muted-foreground">Paid</p>
               </div>
               <p className="text-3xl font-bold text-green-600">${totalPaid.toLocaleString()}</p>
             </CardContent>
           </Card>
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <Clock className="w-5 h-5 text-yellow-600" />
-                <p className="text-sm text-slate-600">Pending</p>
+                <p className="text-sm text-muted-foreground">Pending</p>
               </div>
               <p className="text-3xl font-bold text-yellow-600">${totalPending.toLocaleString()}</p>
             </CardContent>
           </Card>
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <FileText className="w-5 h-5 text-purple-600" />
-                <p className="text-sm text-slate-600">Total Invoices</p>
+                <p className="text-sm text-muted-foreground">Total Invoices</p>
               </div>
-              <p className="text-3xl font-bold text-slate-900">{invoiceList.length}</p>
+              <p className="text-3xl font-bold text-foreground">{invoiceList.length}</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Client Revenue Breakdown */}
         {revenueSummary?.clientRevenue && revenueSummary.clientRevenue.length > 0 && (
-          <Card className="border-slate-200 mb-8">
+          <Card className="border-border mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -198,14 +198,14 @@ export default function Billing() {
                   const width = (client.total / maxTotal) * 100;
                   return (
                     <div key={client.clientId} className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-slate-700 w-40 truncate">{client.clientName}</span>
-                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                      <span className="text-sm font-medium text-foreground w-40 truncate">{client.clientName}</span>
+                      <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-orange-500 to-red-400 rounded-full transition-all"
                           style={{ width: `${width}%` }}
                         />
                       </div>
-                      <span className="text-sm font-bold text-slate-900 w-24 text-right">
+                      <span className="text-sm font-bold text-foreground w-24 text-right">
                         ${client.total.toLocaleString()}
                       </span>
                       {client.pending > 0 && (
@@ -223,7 +223,7 @@ export default function Billing() {
 
         {/* Create Invoice Form */}
         {showCreate && (
-          <Card className="border-slate-200 mb-8 border-orange-200 bg-orange-50/30">
+          <Card className="border-border mb-8 border-orange-200 bg-orange-50/30">
             <CardHeader>
               <CardTitle>Create New Invoice</CardTitle>
               <CardDescription>Generate an invoice for a client</CardDescription>
@@ -284,7 +284,7 @@ export default function Billing() {
         )}
 
         {/* Invoices Table */}
-        <Card className="border-slate-200">
+        <Card className="border-border">
           <CardHeader>
             <CardTitle>Invoice History</CardTitle>
             <CardDescription>All invoices and their payment status</CardDescription>
@@ -293,8 +293,8 @@ export default function Billing() {
             {invoiceList.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">No Invoices Yet</h3>
-                <p className="text-slate-500 mb-4">Create your first invoice to start tracking revenue.</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Invoices Yet</h3>
+                <p className="text-muted-foreground mb-4">Create your first invoice to start tracking revenue.</p>
                 <Button
                   className="bg-gradient-to-r from-orange-600 to-red-600"
                   onClick={() => setShowCreate(true)}
@@ -307,27 +307,27 @@ export default function Billing() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Invoice #</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Client</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Period</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-slate-600">Amount</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Due Date</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-slate-600">Actions</th>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Invoice #</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Client</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Period</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Amount</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Due Date</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {invoiceList.map((invoice: any) => (
-                      <tr key={invoice.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                        <td className="py-3 px-4 text-sm font-mono font-medium text-slate-900">
+                      <tr key={invoice.id} className="border-b border-border last:border-0 hover:bg-background">
+                        <td className="py-3 px-4 text-sm font-mono font-medium text-foreground">
                           {invoice.invoiceNumber || `INV-${invoice.id}`}
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-700">
+                        <td className="py-3 px-4 text-sm text-foreground">
                           {invoice.clientName || `Client #${invoice.clientId}`}
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-600">{invoice.period || "—"}</td>
-                        <td className="py-3 px-4 text-sm font-bold text-right text-slate-900">
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{invoice.period || "—"}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-right text-foreground">
                           ${parseFloat(String(invoice.total || invoice.subtotal || "0")).toLocaleString()}
                         </td>
                         <td className="py-3 px-4">
@@ -336,7 +336,7 @@ export default function Billing() {
                             {invoice.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-600">
+                        <td className="py-3 px-4 text-sm text-muted-foreground">
                           {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "—"}
                         </td>
                         <td className="py-3 px-4 text-right">

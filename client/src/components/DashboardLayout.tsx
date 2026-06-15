@@ -170,8 +170,22 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
+                  <img
+                    src="/manus-storage/scorpion_logo_d2ffa99c.png"
+                    alt="OmniScorp"
+                    className="h-7 w-auto object-contain"
+                  />
+                  <span
+                    className="font-bold tracking-wide truncate text-sm"
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      background: "linear-gradient(135deg, oklch(0.72 0.12 75) 0%, oklch(0.55 0.18 250) 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text"
+                    }}
+                  >
+                    OmniScorp
                   </span>
                 </div>
               ) : null}

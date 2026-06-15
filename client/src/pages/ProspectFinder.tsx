@@ -140,18 +140,18 @@ function ProspectRow({
   })();
 
   const opportunityColor =
-    opportunityScore >= 70 ? "text-emerald-600" : opportunityScore >= 40 ? "text-amber-600" : "text-slate-500";
+    opportunityScore >= 70 ? "text-emerald-600" : opportunityScore >= 40 ? "text-amber-600" : "text-muted-foreground";
   const opportunityLabel =
     opportunityScore >= 70 ? "High" : opportunityScore >= 40 ? "Medium" : "Low";
 
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white transition-all hover:shadow-md">
+    <div className="border border-border rounded-xl overflow-hidden bg-card transition-all hover:shadow-md">
       {/* Main Row */}
       <div className="p-4 flex flex-col md:flex-row md:items-start gap-4">
         {/* Business Info */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h3 className="font-semibold text-slate-800 text-base">{prospect.name}</h3>
+            <h3 className="font-semibold text-foreground text-base">{prospect.name}</h3>
             {!prospect.hasWebsite && (
               <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">No Website</Badge>
             )}
@@ -160,7 +160,7 @@ function ProspectRow({
             )}
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500 mb-2">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mb-2">
             {prospect.address && (
               <span className="flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
@@ -194,9 +194,9 @@ function ProspectRow({
                 <strong>{prospect.rating.toFixed(1)}</strong>
               </span>
             ) : (
-              <span className="text-slate-400 text-xs">No rating</span>
+              <span className="text-muted-foreground text-xs">No rating</span>
             )}
-            <span className="flex items-center gap-1 text-slate-500">
+            <span className="flex items-center gap-1 text-muted-foreground">
               <MessageSquare className="w-3.5 h-3.5" />
               {prospect.reviewCount} reviews
             </span>
@@ -217,10 +217,10 @@ function ProspectRow({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 cursor-help">
-                  <span className="text-xs text-slate-500">Opportunity:</span>
+                  <span className="text-xs text-muted-foreground">Opportunity:</span>
                   <span className={`font-bold text-sm ${opportunityColor}`}>{opportunityLabel}</span>
                   <span className={`text-xs ${opportunityColor}`}>({opportunityScore}%)</span>
-                  <Info className="w-3.5 h-3.5 text-slate-400" />
+                  <Info className="w-3.5 h-3.5 text-muted-foreground" />
                 </div>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
@@ -267,21 +267,21 @@ function ProspectRow({
 
       {/* Traffic Panel */}
       {showTraffic && trafficData && (
-        <div className="border-t border-slate-100 bg-slate-50 p-4">
+        <div className="border-t border-border bg-background p-4">
           {trafficData.hasData ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {formatNumber(trafficData.avgMonthlyVisits)}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">Avg Monthly Visits</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Avg Monthly Visits</div>
               </div>
               {trafficData.globalRank && (
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
                     #{formatNumber(trafficData.globalRank)}
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5">Global Rank</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Global Rank</div>
                 </div>
               )}
               {Object.entries(trafficData.trafficSources)
@@ -289,16 +289,16 @@ function ProspectRow({
                 .slice(0, 2)
                 .map(([source, visits]) => (
                   <div key={source} className="text-center">
-                    <div className="text-2xl font-bold text-slate-700">{formatNumber(visits)}</div>
-                    <div className="text-xs text-slate-500 mt-0.5 capitalize">{source.replace(/_/g, " ")}</div>
+                    <div className="text-2xl font-bold text-foreground">{formatNumber(visits)}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5 capitalize">{source.replace(/_/g, " ")}</div>
                   </div>
                 ))}
-              <div className="col-span-2 md:col-span-4 text-xs text-slate-400 text-right">
+              <div className="col-span-2 md:col-span-4 text-xs text-muted-foreground text-right">
                 Data from Similarweb · {trafficData.dataRange.startDate} to {trafficData.dataRange.endDate}
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <span>
                 {trafficData.error ||
@@ -373,16 +373,16 @@ export default function ProspectFinder() {
   }).length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-5">
+      <div className="bg-card border-b border-border px-6 py-5">
         <div className="max-w-5xl mx-auto flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
             <Search className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">Prospect Finder</h1>
-            <p className="text-sm text-slate-500">
+            <h1 className="text-xl font-bold text-foreground">Prospect Finder</h1>
+            <p className="text-sm text-muted-foreground">
               Find local businesses with no website or unclaimed Google profiles — your best sales opportunities
             </p>
           </div>
@@ -395,7 +395,7 @@ export default function ProspectFinder() {
           <CardContent className="p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <Label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">
                   Industry / Business Type *
                 </Label>
                 <Input
@@ -407,7 +407,7 @@ export default function ProspectFinder() {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">
                   City / Location *
                 </Label>
                 <Input
@@ -422,7 +422,7 @@ export default function ProspectFinder() {
 
             <div className="flex flex-wrap items-center gap-4 mb-4">
               <div className="flex items-center gap-2">
-                <Label className="text-sm text-slate-600">Search Radius:</Label>
+                <Label className="text-sm text-muted-foreground">Search Radius:</Label>
                 <Select value={radius} onValueChange={setRadius}>
                   <SelectTrigger className="w-36 h-9">
                     <SelectValue />
@@ -444,7 +444,7 @@ export default function ProspectFinder() {
                     checked={filterNoWebsite}
                     onCheckedChange={(v) => setFilterNoWebsite(!!v)}
                   />
-                  <Label htmlFor="filterNoWebsite" className="text-sm text-slate-600 cursor-pointer">
+                  <Label htmlFor="filterNoWebsite" className="text-sm text-muted-foreground cursor-pointer">
                     No website only
                   </Label>
                 </div>
@@ -454,7 +454,7 @@ export default function ProspectFinder() {
                     checked={filterUnclaimed}
                     onCheckedChange={(v) => setFilterUnclaimed(!!v)}
                   />
-                  <Label htmlFor="filterUnclaimed" className="text-sm text-slate-600 cursor-pointer">
+                  <Label htmlFor="filterUnclaimed" className="text-sm text-muted-foreground cursor-pointer">
                     Unclaimed only
                   </Label>
                 </div>
@@ -503,12 +503,12 @@ export default function ProspectFinder() {
             ].map((item) => (
               <Card key={item.title} className="border-0 shadow-sm">
                 <CardContent className="p-4 flex gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
                     {item.icon}
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-700 text-sm mb-0.5">{item.title}</div>
-                    <div className="text-xs text-slate-500 leading-relaxed">{item.desc}</div>
+                    <div className="font-semibold text-foreground text-sm mb-0.5">{item.title}</div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">{item.desc}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -521,8 +521,8 @@ export default function ProspectFinder() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-10 text-center">
               <Loader2 className="w-10 h-10 mx-auto text-blue-500 animate-spin mb-3" />
-              <p className="font-medium text-slate-700">Searching Google Maps...</p>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="font-medium text-foreground">Searching Google Maps...</p>
+              <p className="text-sm text-muted-foreground mt-1">
                 Fetching business details, websites, and profile status. This may take 10–20 seconds.
               </p>
             </CardContent>
@@ -545,7 +545,7 @@ export default function ProspectFinder() {
                     <div className={`${stat.color}`}>{stat.icon}</div>
                     <div>
                       <div className={`text-xl font-bold ${stat.color}`}>{stat.value}</div>
-                      <div className="text-xs text-slate-500">{stat.label}</div>
+                      <div className="text-xs text-muted-foreground">{stat.label}</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -555,10 +555,10 @@ export default function ProspectFinder() {
             {/* Results List */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold text-slate-700">
+                <h2 className="font-semibold text-foreground">
                   {results.length} Prospects — {industry} near {location}
                 </h2>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-muted-foreground">
                   {savedIds.size} saved to CRM
                 </span>
               </div>
@@ -581,8 +581,8 @@ export default function ProspectFinder() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-10 text-center">
               <Search className="w-10 h-10 mx-auto text-slate-300 mb-3" />
-              <p className="font-medium text-slate-600">No prospects found</p>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="font-medium text-muted-foreground">No prospects found</p>
+              <p className="text-sm text-muted-foreground mt-1">
                 Try a broader location, different industry keyword, or larger search radius.
               </p>
             </CardContent>

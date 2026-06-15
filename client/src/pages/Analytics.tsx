@@ -84,9 +84,9 @@ export default function Analytics() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white backdrop-blur">
+      <div className="border-b border-border bg-card backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
@@ -94,13 +94,13 @@ export default function Analytics() {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
                   <BarChart3 className="w-6 h-6" />
                 </div>
                 Analytics Dashboard
               </h1>
-              <p className="text-slate-600 mt-1">
+              <p className="text-muted-foreground mt-1">
                 Real-time performance metrics across all campaigns and clients
               </p>
             </div>
@@ -114,7 +114,7 @@ export default function Analytics() {
           {kpis.map((kpi) => {
             const Icon = kpi.icon;
             return (
-              <Card key={kpi.title} className="border-slate-200 hover:shadow-lg transition-all">
+              <Card key={kpi.title} className="border-border hover:shadow-lg transition-all">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${kpi.color} text-white`}>
@@ -125,8 +125,8 @@ export default function Analytics() {
                       {kpi.change}
                     </div>
                   </div>
-                  <p className="text-sm text-slate-600 mb-1">{kpi.title}</p>
-                  <p className="text-3xl font-bold text-slate-900">{kpi.value}</p>
+                  <p className="text-sm text-muted-foreground mb-1">{kpi.title}</p>
+                  <p className="text-3xl font-bold text-foreground">{kpi.value}</p>
                 </CardContent>
               </Card>
             );
@@ -136,7 +136,7 @@ export default function Analytics() {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Module Performance */}
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-purple-500" />
@@ -147,17 +147,17 @@ export default function Analytics() {
             <CardContent>
               <div className="space-y-4">
                 {modulePerformance.map((mod) => (
-                  <div key={mod.name} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+                  <div key={mod.name} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-900">{mod.name}</p>
+                      <p className="text-sm font-medium text-foreground">{mod.name}</p>
                       <div className="flex items-center gap-4 mt-1">
-                        <span className="text-xs text-slate-500">{mod.leads} leads</span>
-                        <span className="text-xs text-slate-500">{mod.conversions} conversions</span>
+                        <span className="text-xs text-muted-foreground">{mod.leads} leads</span>
+                        <span className="text-xs text-muted-foreground">{mod.conversions} conversions</span>
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-bold text-green-600">{mod.rate}</span>
-                      <div className="w-24 h-2 bg-slate-100 rounded-full mt-1">
+                      <div className="w-24 h-2 bg-secondary rounded-full mt-1">
                         <div
                           className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                           style={{ width: mod.rate }}
@@ -171,7 +171,7 @@ export default function Analytics() {
           </Card>
 
           {/* Conversion Funnel */}
-          <Card className="border-slate-200">
+          <Card className="border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="w-5 h-5 text-blue-500" />
@@ -190,10 +190,10 @@ export default function Analytics() {
                 ].map((item) => (
                   <div key={item.stage}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium text-slate-700">{item.stage}</span>
-                      <span className="text-slate-500">{item.count} ({item.percentage}%)</span>
+                      <span className="font-medium text-foreground">{item.stage}</span>
+                      <span className="text-muted-foreground">{item.count} ({item.percentage}%)</span>
                     </div>
-                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
                       <div
                         className={`h-full bg-gradient-to-r ${item.color} rounded-full transition-all duration-500`}
                         style={{ width: `${item.percentage}%` }}
@@ -207,7 +207,7 @@ export default function Analytics() {
         </div>
 
         {/* Recent Campaigns Table */}
-        <Card className="border-slate-200">
+        <Card className="border-border">
           <CardHeader>
             <CardTitle>Recent Campaigns</CardTitle>
             <CardDescription>Active and recent campaign performance</CardDescription>
@@ -216,18 +216,18 @@ export default function Analytics() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Campaign</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Client</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Status</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-600">Leads</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Campaign</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Client</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Status</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Leads</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentCampaigns.map((campaign) => (
-                    <tr key={campaign.name} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                      <td className="py-3 px-4 text-sm font-medium text-slate-900">{campaign.name}</td>
-                      <td className="py-3 px-4 text-sm text-slate-600">{campaign.client}</td>
+                    <tr key={campaign.name} className="border-b border-border last:border-0 hover:bg-background">
+                      <td className="py-3 px-4 text-sm font-medium text-foreground">{campaign.name}</td>
+                      <td className="py-3 px-4 text-sm text-muted-foreground">{campaign.client}</td>
                       <td className="py-3 px-4">
                         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                           campaign.status === "active"
@@ -239,7 +239,7 @@ export default function Analytics() {
                           {campaign.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-sm font-bold text-right text-slate-900">{campaign.leads}</td>
+                      <td className="py-3 px-4 text-sm font-bold text-right text-foreground">{campaign.leads}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -251,32 +251,32 @@ export default function Analytics() {
         {/* Client Performance Grid */}
         {clients && clients.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Client Performance</h2>
+            <h2 className="text-xl font-bold text-foreground mb-4">Client Performance</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {clients.map((client: any) => (
-                <Card key={client.id} className="border-slate-200 hover:shadow-md transition-all">
+                <Card key={client.id} className="border-border hover:shadow-md transition-all">
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
                         {client.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-900">{client.name}</p>
-                        <p className="text-xs text-slate-500">{client.industry || "General"}</p>
+                        <p className="font-semibold text-foreground">{client.name}</p>
+                        <p className="text-xs text-muted-foreground">{client.industry || "General"}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mt-4">
-                      <div className="text-center p-2 bg-slate-50 rounded-lg">
-                        <p className="text-lg font-bold text-slate-900">0</p>
-                        <p className="text-xs text-slate-500">Leads</p>
+                      <div className="text-center p-2 bg-background rounded-lg">
+                        <p className="text-lg font-bold text-foreground">0</p>
+                        <p className="text-xs text-muted-foreground">Leads</p>
                       </div>
-                      <div className="text-center p-2 bg-slate-50 rounded-lg">
-                        <p className="text-lg font-bold text-slate-900">0</p>
-                        <p className="text-xs text-slate-500">Conv.</p>
+                      <div className="text-center p-2 bg-background rounded-lg">
+                        <p className="text-lg font-bold text-foreground">0</p>
+                        <p className="text-xs text-muted-foreground">Conv.</p>
                       </div>
-                      <div className="text-center p-2 bg-slate-50 rounded-lg">
+                      <div className="text-center p-2 bg-background rounded-lg">
                         <p className="text-lg font-bold text-green-600">0%</p>
-                        <p className="text-xs text-slate-500">Rate</p>
+                        <p className="text-xs text-muted-foreground">Rate</p>
                       </div>
                     </div>
                   </CardContent>
