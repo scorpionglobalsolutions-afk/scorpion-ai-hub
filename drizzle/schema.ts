@@ -285,3 +285,166 @@ export const activityLog = mysqlTable("activityLog", {
 
 export type ActivityLog = typeof activityLog.$inferSelect;
 export type InsertActivityLog = typeof activityLog.$inferInsert;
+
+// ============================================================================
+// ANALYTICS & METRICS
+// ============================================================================
+
+export const campaignMetrics = mysqlTable("campaignMetrics", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  clientId: int("clientId").notNull(),
+  date: timestamp("date").notNull(),
+  leadsGenerated: int("leadsGenerated").default(0),
+  leadsQualified: int("leadsQualified").default(0),
+  conversions: int("conversions").default(0),
+  revenue: decimal("revenue", { precision: 12, scale: 2 }).default("0"),
+  cost: decimal("cost", { precision: 12, scale: 2 }).default("0"),
+  roi: decimal("roi", { precision: 5, scale: 2 }).default("0"),
+  conversionRate: decimal("conversionRate", { precision: 5, scale: 2 }).default("0"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CampaignMetrics = typeof campaignMetrics.$inferSelect;
+export type InsertCampaignMetrics = typeof campaignMetrics.$inferInsert;
+
+export const leadMetrics = mysqlTable("leadMetrics", {
+  id: int("id").autoincrement().primaryKey(),
+  leadId: int("leadId").notNull(),
+  campaignId: int("campaignId").notNull(),
+  clientId: int("clientId").notNull(),
+  source: varchar("source", { length: 100 }),
+  engagementScore: int("engagementScore").default(0),
+  emailOpens: int("emailOpens").default(0),
+  emailClicks: int("emailClicks").default(0),
+  smsOpens: int("smsOpens").default(0),
+  callAttempts: int("callAttempts").default(0),
+  appointmentBooked: boolean("appointmentBooked").default(false),
+  converted: boolean("converted").default(false),
+  lastInteraction: timestamp("lastInteraction"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LeadMetrics = typeof leadMetrics.$inferSelect;
+export type InsertLeadMetrics = typeof leadMetrics.$inferInsert;
+
+// ============================================================================
+// WEBHOOKS
+// ============================================================================
+
+export const webhooks = mysqlTable("webhooks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId"),
+  name: varchar("name", { length: 255 }).notNull(),
+  url: varchar("url", { length: 500 }).notNull(),
+  events: json("events"), // Array of event types to listen for
+  secret: varchar("secret", { length: 255 }).notNull(),
+  isActive: boolean("isActive").default(true),
+  lastTriggeredAt: timestamp("lastTriggeredAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Webhook = typeof webhooks.$inferSelect;
+export type InsertWebhook = typeof webhooks.$inferInsert;
+
+export const webhookEvents = mysqlTable("webhookEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  webhookId: int("webhookId").notNull(),
+  eventType: varchar("eventType", { length: 100 }).notNull(),
+  payload: json("payload"),
+  status: mysqlEnum("status", ["pending", "sent", "failed", "retrying"]).default("pending").notNull(),
+  retryCount: int("retryCount").default(0),
+  lastAttemptAt: timestamp("lastAttemptAt"),
+  response: text("response"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WebhookEvent = typeof webhookEvents.$inferSelect;
+export type InsertWebhookEvent = typeof webhookEvents.$inferInsert;
+
+// ============================================================================
+// BILLING & USAGE
+// ============================================================================
+
+export const usageTracking = mysqlTable("usageTracking", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  month: varchar("month", { length: 7 }).notNull(), // YYYY-MM
+  leadsGenerated: int("leadsGenerated").default(0),
+  campaignsRun: int("campaignsRun").default(0),
+  appointmentsBooked: int("appointmentsBooked").default(0),
+  contentCreated: int("contentCreated").default(0),
+  auditsRun: int("auditsRun").default(0),
+  totalCost: decimal("totalCost", { precision: 12, scale: 2 }).default("0"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UsageTracking = typeof usageTracking.$inferSelect;
+export type InsertUsageTracking = typeof usageTracking.$inferInsert;
+
+export const invoices = mysqlTable("invoices", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  invoiceNumber: varchar("invoiceNumber", { length: 50 }).notNull().unique(),
+  period: varchar("period", { length: 7 }).notNull(), // YYYY-MM
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 12, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["draft", "sent", "paid", "overdue"]).default("draft").notNull(),
+  dueDate: timestamp("dueDate"),
+  paidAt: timestamp("paidAt"),
+  items: json("items"), // Array of line items
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
+
+// ============================================================================
+// SCHEDULED CAMPAIGNS
+// ============================================================================
+
+export const scheduledCampaigns = mysqlTable("scheduledCampaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  frequency: mysqlEnum("frequency", ["once", "daily", "weekly", "monthly"]).notNull(),
+  dayOfWeek: int("dayOfWeek"), // 0-6 for weekly
+  dayOfMonth: int("dayOfMonth"), // 1-31 for monthly
+  time: varchar("time", { length: 5 }), // HH:MM format
+  timezone: varchar("timezone", { length: 50 }).default("UTC"),
+  isActive: boolean("isActive").default(true),
+  lastRunAt: timestamp("lastRunAt"),
+  nextRunAt: timestamp("nextRunAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ScheduledCampaign = typeof scheduledCampaigns.$inferSelect;
+export type InsertScheduledCampaign = typeof scheduledCampaigns.$inferInsert;
+
+export const campaignExecutions = mysqlTable("campaignExecutions", {
+  id: int("id").autoincrement().primaryKey(),
+  scheduledCampaignId: int("scheduledCampaignId").notNull(),
+  campaignId: int("campaignId").notNull(),
+  clientId: int("clientId").notNull(),
+  status: mysqlEnum("status", ["pending", "running", "completed", "failed"]).default("pending").notNull(),
+  leadsProcessed: int("leadsProcessed").default(0),
+  successCount: int("successCount").default(0),
+  errorCount: int("errorCount").default(0),
+  errorMessage: text("errorMessage"),
+  startedAt: timestamp("startedAt"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CampaignExecution = typeof campaignExecutions.$inferSelect;
+export type InsertCampaignExecution = typeof campaignExecutions.$inferInsert;

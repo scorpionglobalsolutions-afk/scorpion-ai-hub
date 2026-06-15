@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -17,6 +17,14 @@ import {
   contentCalendar,
   reports,
   activityLog,
+  campaignMetrics,
+  leadMetrics,
+  webhooks,
+  webhookEvents,
+  usageTracking,
+  invoices,
+  scheduledCampaigns,
+  campaignExecutions,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -311,6 +319,7 @@ export async function createSeoAudit(data: {
   website?: string;
   report?: any;
   score?: number;
+  status?: "pending" | "completed" | "failed";
 }) {
   const db = await getDb();
   if (!db) return null;
@@ -421,4 +430,271 @@ export async function getActivityLogByUserId(userId: number, limit: number = 20)
     .where(eq(activityLog.userId, userId))
     .orderBy((t) => t.createdAt)
     .limit(limit);
+}
+
+// ============================================================================
+// WEBHOOK QUERIES
+// ============================================================================
+
+export async function createWebhook(data: {
+  userId: number;
+  clientId?: number;
+  name: string;
+  url: string;
+  events: any;
+  secret: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(webhooks).values(data);
+  return result;
+}
+
+export async function getWebhooksByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(webhooks).where(eq(webhooks.userId, userId));
+}
+
+export async function getWebhookById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(webhooks).where(eq(webhooks.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createWebhookEvent(data: {
+  webhookId: number;
+  eventType: string;
+  payload: any;
+  status?: "pending" | "sent" | "failed" | "retrying";
+  retryCount?: number;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(webhookEvents).values(data);
+  return result;
+}
+
+export async function getWebhookEventsByWebhookId(webhookId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(webhookEvents).where(eq(webhookEvents.webhookId, webhookId));
+}
+
+// ============================================================================
+// CAMPAIGN METRICS QUERIES
+// ============================================================================
+
+export async function createCampaignMetrics(data: {
+  campaignId: number;
+  clientId: number;
+  date: Date;
+  leadsGenerated?: number;
+  leadsQualified?: number;
+  conversions?: number;
+  revenue?: any;
+  cost?: any;
+  roi?: any;
+  conversionRate?: any;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(campaignMetrics).values(data);
+  return result;
+}
+
+export async function getCampaignMetricsByCampaignId(campaignId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(campaignMetrics).where(eq(campaignMetrics.campaignId, campaignId));
+}
+
+export async function getCampaignMetricsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(campaignMetrics).where(eq(campaignMetrics.clientId, clientId));
+}
+
+// ============================================================================
+// LEAD METRICS QUERIES
+// ============================================================================
+
+export async function createLeadMetrics(data: {
+  leadId: number;
+  campaignId: number;
+  clientId: number;
+  source?: string;
+  engagementScore?: number;
+  emailOpens?: number;
+  emailClicks?: number;
+  smsOpens?: number;
+  callAttempts?: number;
+  appointmentBooked?: boolean;
+  converted?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(leadMetrics).values(data);
+  return result;
+}
+
+export async function getLeadMetricsByLeadId(leadId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(leadMetrics).where(eq(leadMetrics.leadId, leadId)).limit(1);
+  return result[0] || null;
+}
+
+export async function updateLeadMetrics(leadId: number, data: any) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.update(leadMetrics).set(data).where(eq(leadMetrics.leadId, leadId));
+  return result;
+}
+
+// ============================================================================
+// USAGE TRACKING QUERIES
+// ============================================================================
+
+export async function createUsageTracking(data: {
+  clientId: number;
+  userId: number;
+  month: string;
+  leadsGenerated?: number;
+  campaignsRun?: number;
+  appointmentsBooked?: number;
+  contentCreated?: number;
+  auditsRun?: number;
+  totalCost?: any;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(usageTracking).values(data);
+  return result;
+}
+
+export async function getUsageTrackingByClientIdAndMonth(clientId: number, month: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(usageTracking)
+    .where(eq(usageTracking.clientId, clientId) && eq(usageTracking.month, month))
+    .limit(1);
+  return result[0] || null;
+}
+
+// ============================================================================
+// INVOICE QUERIES
+// ============================================================================
+
+export async function createInvoice(data: {
+  clientId: number;
+  userId: number;
+  invoiceNumber: string;
+  period: string;
+  subtotal: any;
+  tax?: any;
+  total: any;
+  status?: "draft" | "sent" | "paid" | "overdue";
+  dueDate?: Date;
+  items?: any;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(invoices).values(data);
+  return result;
+}
+
+export async function getInvoicesByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(invoices).where(eq(invoices.clientId, clientId));
+}
+
+export async function getInvoiceById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
+  return result[0] || null;
+}
+
+// ============================================================================
+// SCHEDULED CAMPAIGN QUERIES
+// ============================================================================
+
+export async function createScheduledCampaign(data: {
+  campaignId: number;
+  clientId: number;
+  userId: number;
+  frequency: "once" | "daily" | "weekly" | "monthly";
+  dayOfWeek?: number;
+  dayOfMonth?: number;
+  time?: string;
+  timezone?: string;
+  isActive?: boolean;
+  nextRunAt?: Date;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(scheduledCampaigns).values(data);
+  return result;
+}
+
+export async function getScheduledCampaignsByCampaignId(campaignId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(scheduledCampaigns).where(eq(scheduledCampaigns.campaignId, campaignId));
+}
+
+export async function getScheduledCampaignsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(scheduledCampaigns).where(eq(scheduledCampaigns.clientId, clientId));
+}
+
+export async function updateScheduledCampaign(id: number, data: any) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.update(scheduledCampaigns).set(data).where(eq(scheduledCampaigns.id, id));
+  return result;
+}
+
+// ============================================================================
+// CAMPAIGN EXECUTION QUERIES
+// ============================================================================
+
+export async function createCampaignExecution(data: {
+  scheduledCampaignId: number;
+  campaignId: number;
+  clientId: number;
+  status?: "pending" | "running" | "completed" | "failed";
+  leadsProcessed?: number;
+  successCount?: number;
+  errorCount?: number;
+  errorMessage?: string;
+  startedAt?: Date;
+  completedAt?: Date;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(campaignExecutions).values(data);
+  return result;
+}
+
+export async function getCampaignExecutionsByScheduledCampaignId(scheduledCampaignId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(campaignExecutions)
+    .where(eq(campaignExecutions.scheduledCampaignId, scheduledCampaignId));
+}
+
+export async function updateCampaignExecution(id: number, data: any) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.update(campaignExecutions).set(data).where(eq(campaignExecutions.id, id));
+  return result;
 }
