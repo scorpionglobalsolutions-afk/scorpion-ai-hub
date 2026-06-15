@@ -15,51 +15,69 @@ import {
   Zap,
   Globe,
   Shield,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 export default function Webhooks() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
+  const [platform, setPlatform] = useState("custom");
   const [events, setEvents] = useState("lead.created");
 
-  // Generate a unique webhook URL
   const webhookBaseUrl = window.location.origin + "/api/webhooks/";
-  const webhookSecret = "whsec_" + Math.random().toString(36).substring(2, 18);
 
-  const sampleWebhooks = [
-    {
-      id: 1,
-      name: "Typeform Lead Capture",
-      url: webhookBaseUrl + "typeform-abc123",
-      events: ["lead.created", "form.submitted"],
-      isActive: true,
-      lastTriggeredAt: new Date(Date.now() - 3600000).toISOString(),
-      totalEvents: 145,
+  const { data: webhooksList, isLoading, refetch } = trpc.webhooks.list.useQuery(undefined, {
+    enabled: !!user,
+  });
+
+  const createMutation = trpc.webhooks.create.useMutation({
+    onSuccess: () => {
+      toast.success("Webhook created successfully!");
+      setShowCreate(false);
+      setName("");
+      setPlatform("custom");
+      setEvents("lead.created");
+      refetch();
     },
-    {
-      id: 2,
-      name: "HubSpot Contact Sync",
-      url: webhookBaseUrl + "hubspot-def456",
-      events: ["contact.created", "contact.updated"],
-      isActive: true,
-      lastTriggeredAt: new Date(Date.now() - 7200000).toISOString(),
-      totalEvents: 89,
+    onError: () => {
+      toast.error("Failed to create webhook");
     },
-    {
-      id: 3,
-      name: "Zapier Integration",
-      url: webhookBaseUrl + "zapier-ghi789",
-      events: ["lead.created", "appointment.booked"],
-      isActive: false,
-      lastTriggeredAt: null,
-      totalEvents: 0,
+  });
+
+  const testMutation = trpc.webhooks.test.useMutation({
+    onSuccess: () => {
+      toast.success("Test event sent successfully!");
+      refetch();
     },
-  ];
+    onError: () => {
+      toast.error("Failed to send test event");
+    },
+  });
+
+  const toggleMutation = trpc.webhooks.toggle.useMutation({
+    onSuccess: () => {
+      toast.success("Webhook updated!");
+      refetch();
+    },
+  });
+
+  const deleteMutation = trpc.webhooks.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Webhook deleted!");
+      refetch();
+    },
+    onError: () => {
+      toast.error("Failed to delete webhook");
+    },
+  });
 
   const eventTemplates = [
     { name: "Lead Created", event: "lead.created", description: "Triggered when a new lead is captured" },
@@ -70,7 +88,7 @@ export default function Webhooks() {
     { name: "Lead Converted", event: "lead.converted", description: "Triggered when a lead converts" },
   ];
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Spinner />
@@ -82,6 +100,21 @@ export default function Webhooks() {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
+
+  const handleCreate = () => {
+    if (!name.trim()) {
+      toast.error("Webhook name is required");
+      return;
+    }
+    createMutation.mutate({
+      name: name.trim(),
+      platform,
+      url: webhookBaseUrl + name.trim().toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString(36),
+      events,
+    });
+  };
+
+  const webhooks = webhooksList || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -138,6 +171,21 @@ export default function Webhooks() {
                     />
                   </div>
                   <div>
+                    <Label>Platform</Label>
+                    <select
+                      className="w-full mt-1 border border-slate-300 rounded-md px-3 py-2 text-sm"
+                      value={platform}
+                      onChange={(e) => setPlatform(e.target.value)}
+                    >
+                      <option value="custom">Custom</option>
+                      <option value="typeform">Typeform</option>
+                      <option value="hubspot">HubSpot</option>
+                      <option value="zapier">Zapier</option>
+                      <option value="make">Make (Integromat)</option>
+                      <option value="gravity_forms">Gravity Forms</option>
+                    </select>
+                  </div>
+                  <div>
                     <Label>Events to Listen For</Label>
                     <Input
                       placeholder="e.g., lead.created, form.submitted"
@@ -149,35 +197,32 @@ export default function Webhooks() {
                   </div>
                   <Button
                     className="bg-gradient-to-r from-green-600 to-emerald-600"
-                    onClick={() => {
-                      toast.success("Webhook created successfully!");
-                      setShowCreate(false);
-                      setName("");
-                    }}
+                    onClick={handleCreate}
+                    disabled={createMutation.isPending}
                   >
-                    Create Webhook
+                    {createMutation.isPending ? "Creating..." : "Create Webhook"}
                   </Button>
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Your Webhook URL</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input value={webhookBaseUrl + "new-" + Date.now()} readOnly className="font-mono text-xs" />
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(webhookBaseUrl + "new")}>
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Signing Secret</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input value={webhookSecret} readOnly className="font-mono text-xs" />
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(webhookSecret)}>
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">Use this to verify webhook signatures</p>
-                  </div>
+                <div className="space-y-4 bg-white/60 p-4 rounded-lg border border-green-100">
+                  <h4 className="font-semibold text-slate-800 text-sm">How It Works</h4>
+                  <ol className="space-y-2 text-sm text-slate-600">
+                    <li className="flex gap-2">
+                      <span className="font-bold text-green-600">1.</span>
+                      Create a webhook and copy the generated URL
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold text-green-600">2.</span>
+                      Paste the URL into your external platform (Typeform, HubSpot, etc.)
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold text-green-600">3.</span>
+                      When events occur, data is sent here and triggers automations
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold text-green-600">4.</span>
+                      Speed-to-Lead responds instantly to new leads
+                    </li>
+                  </ol>
                 </div>
               </div>
             </CardContent>
@@ -186,66 +231,109 @@ export default function Webhooks() {
 
         {/* Active Webhooks */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">Active Webhooks</h2>
-          <div className="space-y-4">
-            {sampleWebhooks.map((webhook) => (
-              <Card key={webhook.id} className={`border-slate-200 ${!webhook.isActive ? "opacity-60" : ""}`}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-lg ${webhook.isActive ? "bg-green-100" : "bg-slate-100"}`}>
-                        {webhook.isActive ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-slate-400" />
-                        )}
+          <h2 className="text-xl font-bold text-slate-900 mb-4">
+            Your Webhooks {webhooks.length > 0 && <span className="text-sm font-normal text-slate-500">({webhooks.length})</span>}
+          </h2>
+
+          {webhooks.length === 0 ? (
+            <Card className="border-slate-200 border-dashed">
+              <CardContent className="pt-8 pb-8 text-center">
+                <Webhook className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">No Webhooks Yet</h3>
+                <p className="text-slate-500 mb-4">Create your first webhook to start receiving leads from external platforms.</p>
+                <Button
+                  className="bg-gradient-to-r from-green-600 to-emerald-600"
+                  onClick={() => setShowCreate(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create First Webhook
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {webhooks.map((webhook: any) => (
+                <Card key={webhook.id} className={`border-slate-200 ${!webhook.isActive ? "opacity-60" : ""}`}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-2 rounded-lg ${webhook.isActive ? "bg-green-100" : "bg-slate-100"}`}>
+                          {webhook.isActive ? (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-slate-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{webhook.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Globe className="w-3 h-3 text-slate-400" />
+                            <code className="text-xs text-slate-500 font-mono truncate max-w-[400px]">{webhook.url}</code>
+                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => copyToClipboard(webhook.url)}>
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">{webhook.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Globe className="w-3 h-3 text-slate-400" />
-                          <code className="text-xs text-slate-500 font-mono">{webhook.url}</code>
-                          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => copyToClipboard(webhook.url)}>
-                            <Copy className="w-3 h-3" />
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          {webhook.lastTriggeredAt ? (
+                            <>
+                              <p className="text-sm text-slate-600 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date(webhook.lastTriggeredAt).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-slate-500">Last triggered</p>
+                            </>
+                          ) : (
+                            <p className="text-xs text-slate-400">Never triggered</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => testMutation.mutate({ webhookId: webhook.id })}
+                            disabled={testMutation.isPending}
+                          >
+                            Test
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleMutation.mutate({ webhookId: webhook.id, isActive: !webhook.isActive })}
+                          >
+                            {webhook.isActive ? <ToggleRight className="w-4 h-4 text-green-600" /> : <ToggleLeft className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              if (confirm("Are you sure you want to delete this webhook?")) {
+                                deleteMutation.mutate({ webhookId: webhook.id });
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-slate-900">{webhook.totalEvents}</p>
-                        <p className="text-xs text-slate-500">Events</p>
+                    {webhook.events && (
+                      <div className="flex gap-2 mt-3 ml-14">
+                        {(typeof webhook.events === "string" ? webhook.events.split(",") : Array.isArray(webhook.events) ? webhook.events : []).map((event: string) => (
+                          <span key={event} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">
+                            {event.trim()}
+                          </span>
+                        ))}
                       </div>
-                      <div className="text-right">
-                        {webhook.lastTriggeredAt ? (
-                          <>
-                            <p className="text-sm text-slate-600 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {new Date(webhook.lastTriggeredAt).toLocaleTimeString()}
-                            </p>
-                            <p className="text-xs text-slate-500">Last triggered</p>
-                          </>
-                        ) : (
-                          <p className="text-xs text-slate-400">Never triggered</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">Test</Button>
-                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">Delete</Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-3 ml-14">
-                    {webhook.events.map((event) => (
-                      <span key={event} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">
-                        {event}
-                      </span>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Event Templates */}

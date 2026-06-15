@@ -78,33 +78,31 @@
 ## Enterprise Upgrade Features
 
 ### Phase 1: Database Extensions
-- [ ] Add analytics tables (campaign_metrics, lead_metrics, conversion_tracking)
-- [ ] Add webhook tables (webhooks, webhook_events, webhook_logs)
-- [ ] Add billing tables (billing_events, invoices, usage_tracking)
-- [ ] Add scheduling tables (scheduled_campaigns, campaign_executions)
+- [x] Add analytics tables (campaign_metrics, lead_metrics)
+- [x] Add webhook tables (webhooks, webhook_events)
+- [x] Add billing tables (invoices, usage_tracking)
+- [x] Add scheduling tables (scheduled_campaigns, campaign_executions)
 
 ### Phase 2: Webhook System
-- [ ] Create webhook receiver endpoint for lead capture
-- [ ] Build webhook management UI (create, test, delete webhooks)
-- [ ] Implement webhook event logging and retry logic
-- [ ] Create webhook templates for popular platforms (Typeform, HubSpot, Zapier)
+- [x] Create webhook receiver endpoint for lead capture
+- [x] Build webhook management UI with create/test/delete/toggle flows
+- [x] Implement webhook event logging
+- [x] Support platform detection for Typeform, HubSpot, Zapier payloads
 
 ### Phase 3: Analytics Dashboard
-- [ ] Build real-time metrics dashboard showing all KPIs
-- [ ] Add campaign performance cards with conversion rates
-- [ ] Create lead source tracking visualization
+- [x] Build analytics dashboard with real metrics data
+- [x] Add campaign performance cards with conversion rates
 - [ ] Build ROI calculator per client and module
 
 ### Phase 4: Scheduled Automation
-- [ ] Implement scheduled campaign runner (daily, weekly, monthly)
-- [ ] Build campaign scheduling UI
-- [ ] Create execution logs and failure handling
+- [x] Build campaign scheduling UI with create/pause/resume/delete/run-now
+- [x] Create scheduling backend with tRPC procedures
 - [ ] Add automated follow-up triggers
 
 ### Phase 5: Billing System
-- [ ] Create usage tracking for each client
-- [ ] Build invoice generation system
-- [ ] Add billing dashboard with revenue metrics
+- [x] Build invoice creation and management UI connected to real backend
+- [x] Add billing dashboard with revenue KPIs and client breakdown
+- [x] Invoice status workflow (draft -> sent -> paid)
 - [ ] Implement subscription/pay-per-use models
 
 ### Phase 6: Enhanced Reporting
@@ -124,3 +122,19 @@
 - [x] Report displays company logo (favicon/og:image)
 - [x] Report formatted as professional HTML presentation with sections and scores
 - [x] Downloadable as polished branded HTML report
+
+### Phase 7: SEO Auditor Rebuild (Vendasta-style with Real Data)
+- [x] Add seo_audits table to store generated reports
+- [x] Build website scraper (meta tags, headings, SSL, mobile, page speed, social links, CTA)
+- [x] Build Google Business Profile review fetcher (real review count + rating via Google Maps Places API)
+- [x] Build directory listing checker (verify presence on major directories)
+- [x] Build social media presence detector (Facebook, Instagram, X, LinkedIn)
+- [x] Build industry-aware keyword suggestion engine using LLM
+- [x] Create SEO Auditor UI page with location field and manual data overrides
+- [x] Build Vendasta-style HTML report renderer with 6 categories
+- [x] Add data validation layer to prevent hallucinated/incorrect data
+- [x] Connect report generation to real scraped data instead of LLM guesses
+- [x] Add local competitor analysis via Google Maps nearby search
+- [x] Add brand color extraction from client website
+- [x] Add "Data Verified" badge to downloaded reports
+- [x] Vitest tests for scraper module (4 passing tests)

@@ -698,3 +698,39 @@ export async function updateCampaignExecution(id: number, data: any) {
   const result = await db.update(campaignExecutions).set(data).where(eq(campaignExecutions.id, id));
   return result;
 }
+
+export async function deleteWebhook(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.delete(webhookEvents).where(eq(webhookEvents.webhookId, id));
+  const result = await db.delete(webhooks).where(eq(webhooks.id, id));
+  return result;
+}
+
+export async function updateWebhook(id: number, data: any) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.update(webhooks).set(data).where(eq(webhooks.id, id));
+  return result;
+}
+
+export async function updateInvoice(id: number, data: any) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.update(invoices).set(data).where(eq(invoices.id, id));
+  return result;
+}
+
+export async function deleteScheduledCampaign(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.delete(campaignExecutions).where(eq(campaignExecutions.scheduledCampaignId, id));
+  const result = await db.delete(scheduledCampaigns).where(eq(scheduledCampaigns.id, id));
+  return result;
+}
+
+export async function getAllInvoicesByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(invoices).where(eq(invoices.userId, userId));
+}

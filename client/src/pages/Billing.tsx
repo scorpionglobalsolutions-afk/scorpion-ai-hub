@@ -11,11 +11,10 @@ import {
   Plus,
   ArrowLeft,
   TrendingUp,
-  Calendar,
   CheckCircle,
   Clock,
   AlertCircle,
-  Download,
+  Send,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
@@ -26,67 +25,86 @@ export default function Billing() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
   const [showCreate, setShowCreate] = useState(false);
+  const [clientId, setClientId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [description, setDescription] = useState("");
+
   const { data: clients } = trpc.clients.list.useQuery(undefined, { enabled: !!user });
+  const { data: invoices, isLoading: invoicesLoading, refetch: refetchInvoices } = trpc.billing.getInvoices.useQuery(
+    {},
+    { enabled: !!user }
+  );
+  const { data: revenueSummary, isLoading: revenueLoading } = trpc.billing.getRevenueSummary.useQuery(undefined, {
+    enabled: !!user,
+  });
 
-  const sampleInvoices = [
-    {
-      id: "INV-001",
-      client: "Pool Buddies LLC",
-      amount: 2500,
-      status: "paid",
-      dueDate: "2026-06-01",
-      paidAt: "2026-05-28",
-      services: ["Database Reactivation", "Speed to Lead", "SEO Audit"],
+  const createMutation = trpc.billing.createInvoice.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice created successfully!");
+      setShowCreate(false);
+      setClientId("");
+      setAmount("");
+      setDueDate("");
+      setDescription("");
+      refetchInvoices();
     },
-    {
-      id: "INV-002",
-      client: "AZ Comfort HVAC",
-      amount: 1800,
-      status: "pending",
-      dueDate: "2026-06-15",
-      paidAt: null,
-      services: ["Follow-Up Sequences", "Reputation Management"],
+    onError: () => {
+      toast.error("Failed to create invoice");
     },
-    {
-      id: "INV-003",
-      client: "Smile Dental AZ",
-      amount: 3200,
-      status: "overdue",
-      dueDate: "2026-06-01",
-      paidAt: null,
-      services: ["Full Suite - All Modules"],
-    },
-    {
-      id: "INV-004",
-      client: "Desert Roof Co",
-      amount: 1500,
-      status: "paid",
-      dueDate: "2026-05-15",
-      paidAt: "2026-05-14",
-      services: ["Content Strategist", "Social Scheduler"],
-    },
-  ];
+  });
 
-  const monthlyRevenue = [
-    { month: "Jan", revenue: 8500 },
-    { month: "Feb", revenue: 9200 },
-    { month: "Mar", revenue: 11000 },
-    { month: "Apr", revenue: 10500 },
-    { month: "May", revenue: 12800 },
-    { month: "Jun", revenue: 14200 },
-  ];
+  const updateMutation = trpc.billing.updateInvoice.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice updated!");
+      refetchInvoices();
+    },
+  });
 
-  const totalRevenue = monthlyRevenue.reduce((sum, m) => sum + m.revenue, 0);
-  const avgMonthly = Math.round(totalRevenue / monthlyRevenue.length);
-  const pendingAmount = sampleInvoices.filter(i => i.status !== "paid").reduce((sum, i) => sum + i.amount, 0);
-
-  if (loading) {
+  if (loading || invoicesLoading || revenueLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Spinner />
       </div>
     );
   }
+
+  const handleCreate = () => {
+    if (!clientId || !amount || !dueDate) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    createMutation.mutate({
+      clientId: parseInt(clientId),
+      amount,
+      dueDate,
+      description: description || "AI Services",
+    });
+  };
+
+  const totalRevenue = revenueSummary?.totalRevenue || 0;
+  const totalPending = revenueSummary?.totalPending || 0;
+  const totalPaid = revenueSummary?.totalPaid || 0;
+  const invoiceList = invoices || [];
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "paid": return <CheckCircle className="w-3 h-3" />;
+      case "sent": return <Send className="w-3 h-3" />;
+      case "overdue": return <AlertCircle className="w-3 h-3" />;
+      default: return <Clock className="w-3 h-3" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "paid": return "bg-green-100 text-green-700";
+      case "sent": return "bg-blue-100 text-blue-700";
+      case "overdue": return "bg-red-100 text-red-700";
+      case "cancelled": return "bg-slate-100 text-slate-500";
+      default: return "bg-yellow-100 text-yellow-700";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -129,7 +147,7 @@ export default function Billing() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
                 <DollarSign className="w-5 h-5 text-green-600" />
-                <p className="text-sm text-slate-600">Total Revenue (YTD)</p>
+                <p className="text-sm text-slate-600">Total Revenue</p>
               </div>
               <p className="text-3xl font-bold text-slate-900">${totalRevenue.toLocaleString()}</p>
             </CardContent>
@@ -137,10 +155,10 @@ export default function Billing() {
           <Card className="border-slate-200">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-                <p className="text-sm text-slate-600">Avg Monthly</p>
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <p className="text-sm text-slate-600">Paid</p>
               </div>
-              <p className="text-3xl font-bold text-slate-900">${avgMonthly.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-green-600">${totalPaid.toLocaleString()}</p>
             </CardContent>
           </Card>
           <Card className="border-slate-200">
@@ -149,7 +167,7 @@ export default function Billing() {
                 <Clock className="w-5 h-5 text-yellow-600" />
                 <p className="text-sm text-slate-600">Pending</p>
               </div>
-              <p className="text-3xl font-bold text-yellow-600">${pendingAmount.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-yellow-600">${totalPending.toLocaleString()}</p>
             </CardContent>
           </Card>
           <Card className="border-slate-200">
@@ -158,35 +176,50 @@ export default function Billing() {
                 <FileText className="w-5 h-5 text-purple-600" />
                 <p className="text-sm text-slate-600">Total Invoices</p>
               </div>
-              <p className="text-3xl font-bold text-slate-900">{sampleInvoices.length}</p>
+              <p className="text-3xl font-bold text-slate-900">{invoiceList.length}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Revenue Chart */}
-        <Card className="border-slate-200 mb-8">
-          <CardHeader>
-            <CardTitle>Monthly Revenue</CardTitle>
-            <CardDescription>Revenue trend over the last 6 months</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end gap-4 h-48">
-              {monthlyRevenue.map((item) => {
-                const maxRevenue = Math.max(...monthlyRevenue.map(m => m.revenue));
-                const height = (item.revenue / maxRevenue) * 100;
-                return (
-                  <div key={item.month} className="flex-1 flex flex-col items-center gap-2">
-                    <span className="text-xs font-semibold text-slate-600">${(item.revenue / 1000).toFixed(1)}k</span>
-                    <div className="w-full relative" style={{ height: `${height}%` }}>
-                      <div className="absolute inset-0 bg-gradient-to-t from-orange-500 to-red-400 rounded-t-lg" />
+        {/* Client Revenue Breakdown */}
+        {revenueSummary?.clientRevenue && revenueSummary.clientRevenue.length > 0 && (
+          <Card className="border-slate-200 mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+                Revenue by Client
+              </CardTitle>
+              <CardDescription>Breakdown of revenue across your client base</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {revenueSummary.clientRevenue.map((client: any) => {
+                  const maxTotal = Math.max(...revenueSummary.clientRevenue.map((c: any) => c.total), 1);
+                  const width = (client.total / maxTotal) * 100;
+                  return (
+                    <div key={client.clientId} className="flex items-center gap-4">
+                      <span className="text-sm font-medium text-slate-700 w-40 truncate">{client.clientName}</span>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-orange-500 to-red-400 rounded-full transition-all"
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-bold text-slate-900 w-24 text-right">
+                        ${client.total.toLocaleString()}
+                      </span>
+                      {client.pending > 0 && (
+                        <span className="text-xs text-yellow-600 w-20 text-right">
+                          ${client.pending} pending
+                        </span>
+                      )}
                     </div>
-                    <span className="text-xs text-slate-500">{item.month}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Create Invoice Form */}
         {showCreate && (
@@ -198,8 +231,12 @@ export default function Billing() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label>Client</Label>
-                  <select className="w-full mt-1 border border-slate-300 rounded-md px-3 py-2 text-sm">
+                  <Label>Client *</Label>
+                  <select
+                    className="w-full mt-1 border border-slate-300 rounded-md px-3 py-2 text-sm"
+                    value={clientId}
+                    onChange={(e) => setClientId(e.target.value)}
+                  >
                     <option value="">Select client...</option>
                     {clients?.map((c: any) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -207,26 +244,40 @@ export default function Billing() {
                   </select>
                 </div>
                 <div>
-                  <Label>Amount ($)</Label>
-                  <Input type="number" placeholder="2500" className="mt-1" />
+                  <Label>Amount ($) *</Label>
+                  <Input
+                    type="number"
+                    placeholder="2500"
+                    className="mt-1"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
                 </div>
                 <div>
-                  <Label>Due Date</Label>
-                  <Input type="date" className="mt-1" />
+                  <Label>Due Date *</Label>
+                  <Input
+                    type="date"
+                    className="mt-1"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="mt-4">
-                <Label>Services Included</Label>
-                <Input placeholder="e.g., Database Reactivation, SEO Audit" className="mt-1" />
+                <Label>Description / Services Included</Label>
+                <Input
+                  placeholder="e.g., Database Reactivation, SEO Audit, Speed-to-Lead"
+                  className="mt-1"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </div>
               <Button
                 className="mt-4 bg-gradient-to-r from-orange-600 to-red-600"
-                onClick={() => {
-                  toast.success("Invoice created successfully!");
-                  setShowCreate(false);
-                }}
+                onClick={handleCreate}
+                disabled={createMutation.isPending}
               >
-                Generate Invoice
+                {createMutation.isPending ? "Creating..." : "Generate Invoice"}
               </Button>
             </CardContent>
           </Card>
@@ -239,61 +290,85 @@ export default function Billing() {
             <CardDescription>All invoices and their payment status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Invoice</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Client</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Services</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-600">Amount</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Due Date</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sampleInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                      <td className="py-3 px-4 text-sm font-mono font-medium text-slate-900">{invoice.id}</td>
-                      <td className="py-3 px-4 text-sm text-slate-700">{invoice.client}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-wrap gap-1">
-                          {invoice.services.map((s) => (
-                            <span key={s} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm font-bold text-right text-slate-900">
-                        ${invoice.amount.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
-                          invoice.status === "paid"
-                            ? "bg-green-100 text-green-700"
-                            : invoice.status === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
-                        }`}>
-                          {invoice.status === "paid" && <CheckCircle className="w-3 h-3" />}
-                          {invoice.status === "pending" && <Clock className="w-3 h-3" />}
-                          {invoice.status === "overdue" && <AlertCircle className="w-3 h-3" />}
-                          {invoice.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-slate-600">{invoice.dueDate}</td>
-                      <td className="py-3 px-4 text-right">
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </td>
+            {invoiceList.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">No Invoices Yet</h3>
+                <p className="text-slate-500 mb-4">Create your first invoice to start tracking revenue.</p>
+                <Button
+                  className="bg-gradient-to-r from-orange-600 to-red-600"
+                  onClick={() => setShowCreate(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create First Invoice
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Invoice #</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Client</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Period</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-slate-600">Amount</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600">Due Date</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-slate-600">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {invoiceList.map((invoice: any) => (
+                      <tr key={invoice.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                        <td className="py-3 px-4 text-sm font-mono font-medium text-slate-900">
+                          {invoice.invoiceNumber || `INV-${invoice.id}`}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-slate-700">
+                          {invoice.clientName || `Client #${invoice.clientId}`}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-slate-600">{invoice.period || "—"}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-right text-slate-900">
+                          ${parseFloat(String(invoice.total || invoice.subtotal || "0")).toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(invoice.status)}`}>
+                            {getStatusIcon(invoice.status)}
+                            {invoice.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-slate-600">
+                          {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex gap-1 justify-end">
+                            {invoice.status === "draft" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-blue-600 text-xs"
+                                onClick={() => updateMutation.mutate({ id: invoice.id, status: "sent" })}
+                              >
+                                Send
+                              </Button>
+                            )}
+                            {(invoice.status === "sent" || invoice.status === "overdue") && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-green-600 text-xs"
+                                onClick={() => updateMutation.mutate({ id: invoice.id, status: "paid" })}
+                              >
+                                Mark Paid
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
