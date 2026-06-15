@@ -138,3 +138,18 @@
 - [x] Add brand color extraction from client website
 - [x] Add "Data Verified" badge to downloaded reports
 - [x] Vitest tests for scraper module (4 passing tests)
+
+### Prospect Finder Feature
+- [x] Backend: Google Maps Places search by industry + location
+- [x] Backend: Detect businesses with no website listed on Google profile
+- [x] Backend: Heuristic detection of likely-unclaimed Google Business Profiles (Google API does not expose a direct claimed field; inferred from website presence + review count)
+- [x] Backend: Similarweb traffic lookup for business websites
+- [x] Backend: Save prospect as CRM client/lead with duplicate detection
+- [x] UI: Prospect Finder page with search form (industry + location + radius)
+- [x] UI: Results with no-website / unclaimed badges and opportunity score
+- [x] UI: Traffic checker button per result (Similarweb avg visits, sources, rank)
+- [x] UI: Save as Lead button to add to CRM
+- [x] UI: Summary stats (total, no website, unclaimed, high opportunity)
+- [x] Navigation: Prospect Finder added to Dashboard quick links
+- [x] Route: Registered /prospect-finder route in App.tsx
+- [x] Tests: 25 vitest tests passing across 4 test files

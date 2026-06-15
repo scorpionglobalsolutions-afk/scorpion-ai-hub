@@ -1579,9 +1579,317 @@ const schedulingRouter = router({
 });
 
 // ============================================================================
+// PROSPECT FINDER ROUTER
+// ============================================================================
+const prospectFinderRouter = router({
+  // Search Google Maps for businesses in a given industry + location
+  search: protectedProcedure
+    .input(
+      z.object({
+        industry: z.string().min(2),
+        location: z.string().min(2),
+        radius: z.number().min(1000).max(50000).default(10000), // meters
+        filterNoWebsite: z.boolean().default(false),
+        filterUnclaimed: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { makeRequest } = await import("./_core/map");
+      type PlacesResult = {
+        status: string;
+        results?: Array<{
+          place_id: string;
+          name: string;
+          formatted_address: string;
+          rating?: number;
+          user_ratings_total?: number;
+          website?: string;
+          business_status?: string;
+          opening_hours?: { open_now?: boolean };
+          geometry?: { location: { lat: number; lng: number } };
+          types?: string[];
+          photos?: Array<{ photo_reference: string }>;
+        }>;
+        next_page_token?: string;
+      };
+
+      // Step 1: Geocode the location to get coordinates
+      type GeoResult = { status: string; results?: Array<{ geometry: { location: { lat: number; lng: number } } }> };
+      const geoResult = await makeRequest<GeoResult>("/maps/api/geocode/json", {
+        address: input.location,
+      });
+      const coords = geoResult.results?.[0]?.geometry?.location;
+      if (!coords) {
+        return { prospects: [], total: 0, error: "Could not geocode location" };
+      }
+
+      // Step 2: Nearby search for businesses
+      const searchResult = await makeRequest<PlacesResult>("/maps/api/place/nearbysearch/json", {
+        location: `${coords.lat},${coords.lng}`,
+        radius: input.radius,
+        keyword: input.industry,
+        type: "establishment",
+      });
+
+      if (searchResult.status !== "OK" || !searchResult.results) {
+        return { prospects: [], total: 0, error: searchResult.status };
+      }
+
+      // Step 3: Fetch place details for each result to get website + claimed status
+      type PlaceDetail = {
+        status: string;
+        result?: {
+          place_id: string;
+          name: string;
+          formatted_address: string;
+          formatted_phone_number?: string;
+          website?: string;
+          rating?: number;
+          user_ratings_total?: number;
+          business_status?: string;
+          url?: string;
+          types?: string[];
+          opening_hours?: { open_now?: boolean };
+          geometry?: { location: { lat: number; lng: number } };
+        };
+      };
+
+      const prospects: Array<{
+        placeId: string;
+        name: string;
+        address: string;
+        phone: string;
+        website: string | null;
+        rating: number;
+        reviewCount: number;
+        hasWebsite: boolean;
+        isClaimed: boolean;
+        mapsUrl: string;
+        types: string[];
+        lat: number;
+        lng: number;
+      }> = [];
+
+      // Process up to 20 results (API limit per page)
+      const places = searchResult.results.slice(0, 20);
+      await Promise.all(
+        places.map(async (place) => {
+          try {
+            const detail = await makeRequest<PlaceDetail>("/maps/api/place/details/json", {
+              place_id: place.place_id,
+              fields: "place_id,name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,business_status,url,types,geometry",
+            });
+            const r = detail.result;
+            if (!r) return;
+
+            const hasWebsite = !!r.website;
+            // Google doesn't expose a direct "claimed" field, but businesses without
+            // a website AND with 0 reviews are very likely unclaimed/unmanaged.
+            // Businesses with business_status = "OPERATIONAL" but no website are strong prospects.
+            const isClaimed = hasWebsite || (r.user_ratings_total ?? 0) > 5;
+
+            prospects.push({
+              placeId: r.place_id,
+              name: r.name,
+              address: r.formatted_address,
+              phone: r.formatted_phone_number || "",
+              website: r.website || null,
+              rating: r.rating || 0,
+              reviewCount: r.user_ratings_total || 0,
+              hasWebsite,
+              isClaimed,
+              mapsUrl: r.url || `https://www.google.com/maps/place/?q=place_id:${r.place_id}`,
+              types: r.types || [],
+              lat: r.geometry?.location?.lat || coords.lat,
+              lng: r.geometry?.location?.lng || coords.lng,
+            });
+          } catch {
+            // Skip failed detail fetches
+          }
+        })
+      );
+
+      // Apply filters
+      let filtered = prospects;
+      if (input.filterNoWebsite) {
+        filtered = filtered.filter((p) => !p.hasWebsite);
+      }
+      if (input.filterUnclaimed) {
+        filtered = filtered.filter((p) => !p.isClaimed);
+      }
+
+      return { prospects: filtered, total: filtered.length, error: null };
+    }),
+
+  // Get Similarweb traffic data for a website domain
+  getTraffic: protectedProcedure
+    .input(
+      z.object({
+        domain: z.string().min(3),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { callDataApi } = await import("./_core/dataApi");
+      // Clean domain: remove protocol, www, trailing slashes
+      const cleanDomain = input.domain
+        .replace(/^https?:\/\//i, "")
+        .replace(/^www\./i, "")
+        .replace(/\/.*$/, "")
+        .toLowerCase()
+        .trim();
+
+      // Get last complete month date range (last 3 months)
+      const now = new Date();
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+      const endDate = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, "0")}`;
+      const startDate = `${threeMonthsAgo.getFullYear()}-${String(threeMonthsAgo.getMonth() + 1).padStart(2, "0")}`;
+
+      try {
+        // Fetch total visits and traffic sources in parallel
+        const [visitsResult, sourcesResult, rankResult] = await Promise.allSettled([
+          callDataApi("Similarweb/get_visits_total", {
+            pathParams: { domain: cleanDomain },
+            query: {
+              country: "world",
+              granularity: "monthly",
+              main_domain_only: false,
+              start_date: startDate,
+              end_date: endDate,
+            },
+          }),
+          callDataApi("Similarweb/get_traffic_sources_desktop", {
+            pathParams: { domain: cleanDomain },
+            query: {
+              country: "world",
+              granularity: "monthly",
+              main_domain_only: false,
+              start_date: startDate,
+              end_date: endDate,
+            },
+          }),
+          callDataApi("Similarweb/get_global_rank", {
+            pathParams: { domain: cleanDomain },
+            query: {
+              main_domain_only: false,
+              start_date: startDate,
+              end_date: endDate,
+            },
+          }),
+        ]);
+
+        // Parse visits
+        let totalVisits = 0;
+        let monthlyVisits: Array<{ date: string; visits: number }> = [];
+        if (visitsResult.status === "fulfilled") {
+          const vd = visitsResult.value as any;
+          const visits = vd?.visits || vd?.data?.visits || [];
+          if (Array.isArray(visits) && visits.length > 0) {
+            monthlyVisits = visits.map((v: any) => ({ date: v.date, visits: Math.round(v.visits || 0) }));
+            totalVisits = monthlyVisits.reduce((sum, v) => sum + v.visits, 0) / monthlyVisits.length;
+          }
+        }
+
+        // Parse traffic sources
+        let sources: Record<string, number> = {};
+        if (sourcesResult.status === "fulfilled") {
+          const sd = sourcesResult.value as any;
+          const channels = sd?.visits || sd?.data?.visits || [];
+          if (Array.isArray(channels)) {
+            for (const ch of channels) {
+              if (ch.source_type && ch.visits !== undefined) {
+                sources[ch.source_type] = (sources[ch.source_type] || 0) + ch.visits;
+              }
+            }
+          }
+        }
+
+        // Parse global rank
+        let globalRank: number | null = null;
+        if (rankResult.status === "fulfilled") {
+          const rd = rankResult.value as any;
+          const ranks = rd?.global_ranking || rd?.data?.global_ranking || [];
+          if (Array.isArray(ranks) && ranks.length > 0) {
+            globalRank = ranks[ranks.length - 1]?.global_ranking || null;
+          }
+        }
+
+        const hasData = totalVisits > 0 || Object.keys(sources).length > 0;
+
+        return {
+          domain: cleanDomain,
+          hasData,
+          avgMonthlyVisits: Math.round(totalVisits),
+          monthlyVisits,
+          trafficSources: sources,
+          globalRank,
+          dataRange: { startDate, endDate },
+          error: hasData ? null : "No traffic data available — site may be too small or not indexed by Similarweb",
+        };
+      } catch (err: any) {
+        return {
+          domain: cleanDomain,
+          hasData: false,
+          avgMonthlyVisits: 0,
+          monthlyVisits: [],
+          trafficSources: {},
+          globalRank: null,
+          dataRange: { startDate, endDate },
+          error: err?.message || "Failed to fetch traffic data",
+        };
+      }
+    }),
+
+  // Save a prospect as a CRM client/lead
+  saveAsLead: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        address: z.string().optional(),
+        phone: z.string().optional(),
+        website: z.string().optional(),
+        industry: z.string().optional(),
+        notes: z.string().optional(),
+        placeId: z.string().optional(),
+        mapsUrl: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if client already exists by name
+      const existing = await db.getClientsByUserId(ctx.user.id);
+      const alreadyExists = existing.some(
+        (c: { name: string }) => c.name.toLowerCase() === input.name.toLowerCase()
+      );
+      if (alreadyExists) {
+        return { success: false, error: "Client already exists in your CRM", clientId: null };
+      }
+      // Build description combining address + notes + maps link
+      const descriptionParts: string[] = [];
+      if (input.address) descriptionParts.push(`Address: ${input.address}`);
+      if (input.notes) descriptionParts.push(input.notes);
+      descriptionParts.push(`Google Maps: ${input.mapsUrl || "N/A"}`);
+      descriptionParts.push(`Source: Prospect Finder (${new Date().toLocaleDateString()})`);
+
+      await db.createClient({
+        userId: ctx.user.id,
+        name: input.name,
+        industry: input.industry || "Unknown",
+        website: input.website || undefined,
+        phone: input.phone || undefined,
+        description: descriptionParts.join(" | "),
+      });
+      // Re-fetch to get the new client's ID
+      const updated = await db.getClientsByUserId(ctx.user.id);
+      const newClient = updated.find(
+        (c: { name: string; id: number }) => c.name.toLowerCase() === input.name.toLowerCase()
+      );
+      return { success: true, error: null, clientId: newClient?.id ?? null };
+    }),
+});
+
+// ============================================================================
 // MAIN APP ROUTER
 // ============================================================================
-
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -1611,6 +1919,7 @@ export const appRouter = router({
   webhooks: webhookRouter,
   billing: billingRouter,
   scheduling: schedulingRouter,
+  prospectFinder: prospectFinderRouter,
 });
 
 export type AppRouter = typeof appRouter;

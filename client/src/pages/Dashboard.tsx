@@ -20,6 +20,7 @@ import {
   Timer,
   TrendingUp,
   ArrowRight,
+  Target,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -117,6 +118,13 @@ const ENTERPRISE_LINKS = [
     icon: Timer,
     path: "/scheduling",
     color: "from-purple-500 to-pink-500",
+  },
+  {
+    title: "Prospect Finder",
+    description: "Find unclaimed businesses",
+    icon: Target,
+    path: "/prospect-finder",
+    color: "from-cyan-500 to-blue-500",
   },
 ];
 
@@ -227,7 +235,7 @@ export default function Dashboard() {
         </div>
 
         {/* Enterprise Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-12">
           {ENTERPRISE_LINKS.map((link) => {
             const Icon = link.icon;
             return (

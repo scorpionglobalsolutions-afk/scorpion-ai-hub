@@ -12,6 +12,7 @@ import Webhooks from "./pages/Webhooks";
 import Billing from "./pages/Billing";
 import Scheduling from "./pages/Scheduling";
 import ModulesRouter from "./pages/ModulesRouter";
+import ProspectFinder from "./pages/ProspectFinder";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/webhooks" component={Webhooks} />
       <Route path="/billing" component={Billing} />
       <Route path="/scheduling" component={Scheduling} />
+      <Route path="/prospect-finder" component={ProspectFinder} />
       <Route path="/modules/:moduleId" component={ModulesRouter} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
