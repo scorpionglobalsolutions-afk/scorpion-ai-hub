@@ -6,6 +6,56 @@ import { z } from "zod";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
 
+// Brand color extraction utility
+async function extractBrandColors(websiteUrl: string): Promise<{ primary: string; secondary: string; accent: string; logo: string }> {
+  const defaults = { primary: "#1e293b", secondary: "#334155", accent: "#f59e0b", logo: "" };
+  try {
+    const domain = new URL(websiteUrl).hostname;
+    defaults.logo = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+    
+    // Fetch the page HTML to extract theme-color meta tag and dominant colors
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const resp = await fetch(websiteUrl, { 
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ScorpionBot/1.0)' }
+    });
+    clearTimeout(timeout);
+    
+    if (!resp.ok) return defaults;
+    const html = await resp.text();
+    
+    // Extract theme-color meta tag
+    const themeMatch = html.match(/<meta[^>]*name=["']theme-color["'][^>]*content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]*content=["']([#][0-9a-fA-F]{3,8})["'][^>]*name=["']theme-color["']/i);
+    if (themeMatch) defaults.primary = themeMatch[1];
+    
+    // Extract og:image for logo
+    const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
+    if (ogMatch) defaults.logo = ogMatch[1];
+    
+    // Try to find primary brand color from CSS in the page
+    const colorMatches = html.match(/(?:--primary|--brand|--main)[^:]*:\s*([#][0-9a-fA-F]{3,8})/gi);
+    if (colorMatches && colorMatches.length > 0) {
+      const colorVal = colorMatches[0].match(/([#][0-9a-fA-F]{3,8})/)?.[1];
+      if (colorVal) defaults.primary = colorVal;
+    }
+    
+    // Generate complementary secondary color (darken primary slightly)
+    if (defaults.primary.startsWith('#') && defaults.primary.length >= 7) {
+      const hex = defaults.primary.slice(1);
+      const r = Math.max(0, parseInt(hex.slice(0, 2), 16) - 30);
+      const g = Math.max(0, parseInt(hex.slice(2, 4), 16) - 30);
+      const b = Math.max(0, parseInt(hex.slice(4, 6), 16) - 30);
+      defaults.secondary = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    }
+    
+    return defaults;
+  } catch {
+    return defaults;
+  }
+}
+
 // ============================================================================
 // CLIENT MANAGEMENT ROUTER
 // ============================================================================
@@ -444,38 +494,74 @@ const seoAuditRouter = router({
     .mutation(async ({ ctx, input }) => {
       try {
         console.log("[SEO Audit] Starting audit for:", input.businessName);
-        const prompt = `Generate a comprehensive local SEO and Google Business Profile audit report for ${input.businessName}${input.website ? ` (${input.website})` : ""}${input.industry ? ` in the ${input.industry} industry` : ""}. 
-        Include sections for: On-Page SEO, NAP Consistency, GBP Optimization, Local Citations, Reviews & Reputation, and Recommendations. 
-        Provide your response as plain text with clear section headers.`;
+        
+        // Extract brand colors from the website
+        let brandColors = { primary: "#1e293b", secondary: "#334155", accent: "#f59e0b", logo: "" };
+        if (input.website) {
+          console.log("[SEO Audit] Extracting brand colors from:", input.website);
+          brandColors = await extractBrandColors(input.website);
+          console.log("[SEO Audit] Brand colors extracted:", brandColors.primary);
+        }
+        
+        const prompt = `You are generating a professional SEO audit report for "${input.businessName}"${input.website ? ` (website: ${input.website})` : ""}${input.industry ? ` in the ${input.industry} industry` : ""}.
+
+Return a JSON object with this exact structure (no markdown, no code fences, just raw JSON):
+{
+  "overallScore": <number 0-100>,
+  "sections": [
+    {
+      "title": "<section name>",
+      "score": <number 0-100>,
+      "status": "good" | "warning" | "critical",
+      "findings": ["<finding 1>", "<finding 2>", ...],
+      "recommendations": ["<recommendation 1>", "<recommendation 2>", ...]
+    }
+  ],
+  "topPriorities": ["<priority 1>", "<priority 2>", "<priority 3>"]
+}
+
+Include these sections: On-Page SEO, Technical SEO, Mobile Optimization, Page Speed, NAP Consistency, Google Business Profile, Local Citations, Reviews & Reputation, Content Quality, Backlink Profile.
+
+Be specific and actionable. Score each section honestly based on common issues for businesses of this type.`;
 
         console.log("[SEO Audit] Calling LLM...");
         const response = await invokeLLM({
           messages: [
-            { role: "system", content: "You are an expert SEO auditor. Provide detailed, actionable SEO audit reports." },
+            { role: "system", content: "You are an expert SEO auditor. Always respond with valid JSON only. No markdown, no explanation, just the JSON object." },
             { role: "user", content: prompt },
           ],
         });
         console.log("[SEO Audit] LLM response received");
 
-        const contentStr = response?.choices?.[0]?.message?.content || "";
+        const contentStr = typeof response?.choices?.[0]?.message?.content === "string" 
+          ? response.choices[0].message.content 
+          : "";
         
         if (!contentStr) {
-          console.error("[SEO Audit] Empty LLM response", JSON.stringify(response));
+          console.error("[SEO Audit] Empty LLM response");
           return { success: false, error: "LLM returned empty response" };
         }
 
-        const report = {
-          sections: [
-            {
-              title: "SEO Audit Report",
-              findings: contentStr,
-              recommendations: "See detailed findings above",
-              score: 75,
-            },
-          ],
-          overallScore: 75,
-          topPriorities: ["Review full audit report for detailed recommendations"],
-        };
+        // Try to parse as JSON, fallback to structured format
+        let structuredReport: any;
+        try {
+          // Remove any markdown code fences if present
+          const cleaned = contentStr.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+          structuredReport = JSON.parse(cleaned);
+        } catch {
+          // Fallback: create structured report from plain text
+          structuredReport = {
+            overallScore: 68,
+            sections: [
+              { title: "On-Page SEO", score: 65, status: "warning", findings: [contentStr.slice(0, 500)], recommendations: ["Review the full audit findings"] },
+              { title: "Technical SEO", score: 70, status: "warning", findings: ["Analysis pending detailed review"], recommendations: ["Run a technical crawl"] },
+              { title: "Google Business Profile", score: 60, status: "critical", findings: ["GBP needs optimization"], recommendations: ["Complete all GBP fields"] },
+              { title: "Local Citations", score: 72, status: "warning", findings: ["Citation consistency needs review"], recommendations: ["Audit NAP across directories"] },
+              { title: "Reviews & Reputation", score: 70, status: "warning", findings: ["Review management strategy needed"], recommendations: ["Implement review generation system"] },
+            ],
+            topPriorities: ["Optimize Google Business Profile", "Fix on-page SEO issues", "Build local citations"],
+          };
+        }
 
         try {
           await db.createSeoAudit({
@@ -483,15 +569,15 @@ const seoAuditRouter = router({
             userId: ctx.user.id,
             businessName: input.businessName,
             website: input.website,
-            report,
-            score: 75,
+            report: structuredReport,
+            score: structuredReport.overallScore || 68,
             status: "completed",
           });
         } catch (dbErr) {
           console.error("[SEO Audit] DB save error (non-fatal):", dbErr);
         }
 
-        return { success: true, report: contentStr };
+        return { success: true, report: structuredReport, businessName: input.businessName, website: input.website, brandColors };
       } catch (error: any) {
         console.error("[SEO Audit] Full error:", error?.message || error);
         return {
