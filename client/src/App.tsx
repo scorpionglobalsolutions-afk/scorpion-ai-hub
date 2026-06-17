@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import DashboardLayout from "./components/DashboardLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
@@ -17,15 +18,33 @@ import ProspectFinder from "./pages/ProspectFinder";
 function Router() {
   return (
     <Switch>
+      {/* Public landing page — no sidebar */}
       <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/clients" component={Clients} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/webhooks" component={Webhooks} />
-      <Route path="/billing" component={Billing} />
-      <Route path="/scheduling" component={Scheduling} />
-      <Route path="/prospect-finder" component={ProspectFinder} />
-      <Route path="/modules/:moduleId" component={ModulesRouter} />
+      {/* All authenticated pages wrapped in DashboardLayout for persistent sidebar */}
+      <Route path="/dashboard">
+        <DashboardLayout><Dashboard /></DashboardLayout>
+      </Route>
+      <Route path="/clients">
+        <DashboardLayout><Clients /></DashboardLayout>
+      </Route>
+      <Route path="/analytics">
+        <DashboardLayout><Analytics /></DashboardLayout>
+      </Route>
+      <Route path="/webhooks">
+        <DashboardLayout><Webhooks /></DashboardLayout>
+      </Route>
+      <Route path="/billing">
+        <DashboardLayout><Billing /></DashboardLayout>
+      </Route>
+      <Route path="/scheduling">
+        <DashboardLayout><Scheduling /></DashboardLayout>
+      </Route>
+      <Route path="/prospect-finder">
+        <DashboardLayout><ProspectFinder /></DashboardLayout>
+      </Route>
+      <Route path="/modules/:moduleId">
+        <DashboardLayout><ModulesRouter /></DashboardLayout>
+      </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
