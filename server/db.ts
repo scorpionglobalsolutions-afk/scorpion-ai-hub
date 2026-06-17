@@ -299,7 +299,93 @@ export async function createVoiceAssistant(data: {
   const db = await getDb();
   if (!db) return null;
   const result = await db.insert(voiceAssistants).values(data);
-  return result;
+  const [inserted] = await db
+    .select()
+    .from(voiceAssistants)
+    .where(eq(voiceAssistants.clientId, data.clientId))
+    .orderBy(voiceAssistants.createdAt)
+    .limit(1);
+  // Return the most recently inserted row by fetching the last one for this client
+  const rows = await db
+    .select()
+    .from(voiceAssistants)
+    .where(eq(voiceAssistants.clientId, data.clientId));
+  return rows[rows.length - 1] ?? null;
+}
+
+export async function getVoiceAssistantById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(voiceAssistants).where(eq(voiceAssistants.id, id));
+  return rows[0] ?? null;
+}
+
+export async function updateVoiceAssistantStatus(
+  id: number,
+  status: "draft" | "active" | "paused"
+) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(voiceAssistants).set({ status }).where(eq(voiceAssistants.id, id));
+  return getVoiceAssistantById(id);
+}
+
+export async function updateVoiceAssistant(
+  id: number,
+  data: {
+    name?: string;
+    systemPrompt?: string;
+    callScript?: string;
+    objectionHandling?: any;
+  }
+) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(voiceAssistants).set(data).where(eq(voiceAssistants.id, id));
+  return getVoiceAssistantById(id);
+}
+
+export async function deleteVoiceAssistant(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.delete(voiceAssistants).where(eq(voiceAssistants.id, id));
+  return { success: true };
+}
+
+export async function createCallLog(data: {
+  voiceAssistantId: number;
+  leadId?: number;
+  campaignId?: number;
+  duration?: number;
+  outcome?: string;
+  transcript?: string;
+  notes?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(callLogs).values({
+    voiceAssistantId: data.voiceAssistantId,
+    leadId: data.leadId ?? 0,
+    campaignId: data.campaignId ?? 0,
+    duration: data.duration,
+    outcome: data.outcome,
+    transcript: data.transcript,
+    notes: data.notes,
+  });
+  const rows = await db
+    .select()
+    .from(callLogs)
+    .where(eq(callLogs.voiceAssistantId, data.voiceAssistantId));
+  return rows[rows.length - 1] ?? null;
+}
+
+export async function getCallLogsByAssistantId(voiceAssistantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(callLogs)
+    .where(eq(callLogs.voiceAssistantId, voiceAssistantId));
 }
 
 // ============================================================================

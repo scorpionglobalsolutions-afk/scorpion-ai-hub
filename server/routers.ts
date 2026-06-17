@@ -371,30 +371,162 @@ const voiceAssistantRouter = router({
       return result;
     }),
 
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        systemPrompt: z.string().optional(),
+        callScript: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      return db.updateVoiceAssistant(id, data);
+    }),
+
+  updateStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(["draft", "active", "paused"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await db.updateVoiceAssistantStatus(input.id, input.status);
+      await db.logActivity({
+        userId: ctx.user.id,
+        action: `voice_assistant_${input.status}`,
+        entityType: "voice_assistant",
+        details: { id: input.id, status: input.status },
+      });
+      return result;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.logActivity({
+        userId: ctx.user.id,
+        action: "deleted_voice_assistant",
+        entityType: "voice_assistant",
+        details: { id: input.id },
+      });
+      return db.deleteVoiceAssistant(input.id);
+    }),
+
+  generateScript: protectedProcedure
+    .input(
+      z.object({
+        businessName: z.string(),
+        industry: z.string(),
+        callType: z.enum(["inbound", "outbound"]),
+        goal: z.string(), // e.g. "book appointments", "qualify leads", "follow up on quote"
+        tone: z.enum(["professional", "friendly", "urgent", "consultative"]).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const toneDesc = input.tone ?? "professional";
+      const prompt = `You are an expert voice AI script writer for sales and service businesses.
+
+Write a complete ${input.callType} call script for:
+- Business: ${input.businessName}
+- Industry: ${input.industry}
+- Goal: ${input.goal}
+- Tone: ${toneDesc}
+
+The script should include:
+1. Opening greeting (introduce the AI assistant by name)
+2. Purpose statement
+3. 3-5 qualifying questions
+4. Value proposition
+5. Call to action (book appointment / confirm details / transfer to human)
+6. Closing
+
+Also write a system prompt (2-3 sentences) that describes the assistant's personality and behavior.
+
+Format your response as JSON with keys: "systemPrompt", "callScript"`;
+
+      const response = await invokeLLM({
+        messages: [{ role: "user", content: prompt }],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "voice_script",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                systemPrompt: { type: "string" },
+                callScript: { type: "string" },
+              },
+              required: ["systemPrompt", "callScript"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const rawContent = response.choices[0]?.message.content || "{}";
+      const content = typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent);
+      try {
+        return JSON.parse(content) as { systemPrompt: string; callScript: string };
+      } catch {
+        return { systemPrompt: "", callScript: content };
+      }
+    }),
+
   generateObjectionHandler: protectedProcedure
     .input(
       z.object({
         objection: z.string(),
         productContext: z.string(),
+        industry: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
-      const prompt = `Generate a professional response to this sales objection: "${input.objection}". Context: ${input.productContext}. Provide a concise, empathetic response that addresses the concern and moves the conversation forward.`;
+      const prompt = `You are an expert sales coach. Generate a professional, empathetic response to this sales objection.
+
+Objection: "${input.objection}"
+Business context: ${input.productContext}${input.industry ? `\nIndustry: ${input.industry}` : ""}
+
+Provide:
+1. A brief empathetic acknowledgment (1 sentence)
+2. A reframe or value statement (1-2 sentences)
+3. A soft close or next step (1 sentence)
+
+Keep it conversational and under 60 words total.`;
 
       const response = await invokeLLM({
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+        messages: [{ role: "user", content: prompt }],
       });
 
+      const objContent = response.choices[0]?.message.content;
       return {
-        response:
-          response.choices[0]?.message.content ||
-          "Failed to generate response",
+        response: typeof objContent === "string" ? objContent : (objContent ? JSON.stringify(objContent) : "Failed to generate response"),
       };
+    }),
+
+  addCallLog: protectedProcedure
+    .input(
+      z.object({
+        voiceAssistantId: z.number(),
+        leadId: z.number().optional(),
+        campaignId: z.number().optional(),
+        duration: z.number().optional(),
+        outcome: z.string().optional(),
+        transcript: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return db.createCallLog(input);
+    }),
+
+  getCallLogs: protectedProcedure
+    .input(z.object({ voiceAssistantId: z.number() }))
+    .query(async ({ input }) => {
+      return db.getCallLogsByAssistantId(input.voiceAssistantId);
     }),
 });
 
