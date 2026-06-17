@@ -186,6 +186,20 @@ function extractLeadData(body: any): {
 } | null {
   if (!body) return null;
 
+  // n8n SEO Scout format: { business_name, website_url, seo_report, lead_info, priority }
+  if (body.business_name || body.lead_info) {
+    const leadInfo = body.lead_info || {};
+    return {
+      name: body.business_name || body.company_name || "Unknown Business",
+      email: body.email || leadInfo.email || "",
+      phone: body.phone || leadInfo.phone || "",
+      business: body.business_name || body.company_name || "",
+      industry: leadInfo.industry || body.industry || "",
+      source: leadInfo.source || body.source || "n8n-seo-scout",
+      notes: body.website_url ? `Website: ${body.website_url}` : "",
+    };
+  }
+
   // Direct / n8n flat fields
   if (body.email || body.name || body.phone || body.business) {
     return {
