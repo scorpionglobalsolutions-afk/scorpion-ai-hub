@@ -25,6 +25,8 @@ import {
   invoices,
   scheduledCampaigns,
   campaignExecutions,
+  leadGenAgents,
+  leadGenResults,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -819,4 +821,134 @@ export async function getAllInvoicesByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(invoices).where(eq(invoices.userId, userId));
+}
+
+// ============================================================================
+// LEAD GENERATION AGENT QUERIES
+// ============================================================================
+
+export async function getLeadGenAgentsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(leadGenAgents).where(eq(leadGenAgents.clientId, clientId));
+}
+
+export async function getLeadGenAgentById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(leadGenAgents).where(eq(leadGenAgents.id, id));
+  return rows[0] ?? null;
+}
+
+export async function createLeadGenAgent(data: {
+  clientId: number;
+  userId: number;
+  name: string;
+  industry?: string;
+  location?: string;
+  radius?: number;
+  targetKeywords?: any;
+  filters?: any;
+  outreachChannel?: "sms" | "email" | "both";
+  outreachTone?: "professional" | "friendly" | "urgent" | "consultative";
+  valueProposition?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(leadGenAgents).values(data);
+  const rows = await db
+    .select()
+    .from(leadGenAgents)
+    .where(eq(leadGenAgents.clientId, data.clientId));
+  return rows[rows.length - 1] ?? null;
+}
+
+export async function updateLeadGenAgent(
+  id: number,
+  data: {
+    name?: string;
+    industry?: string;
+    location?: string;
+    radius?: number;
+    targetKeywords?: any;
+    filters?: any;
+    outreachChannel?: "sms" | "email" | "both";
+    outreachTone?: "professional" | "friendly" | "urgent" | "consultative";
+    valueProposition?: string;
+    status?: "draft" | "active" | "paused";
+    lastRunAt?: Date;
+    totalProspectsFound?: number;
+    totalLeadsSaved?: number;
+  }
+) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(leadGenAgents).set(data).where(eq(leadGenAgents.id, id));
+  return getLeadGenAgentById(id);
+}
+
+export async function deleteLeadGenAgent(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.delete(leadGenResults).where(eq(leadGenResults.agentId, id));
+  await db.delete(leadGenAgents).where(eq(leadGenAgents.id, id));
+  return { success: true };
+}
+
+export async function saveLeadGenResults(
+  results: Array<{
+    agentId: number;
+    clientId: number;
+    businessName: string;
+    address?: string;
+    phone?: string;
+    website?: string;
+    googlePlaceId?: string;
+    rating?: number;
+    reviewCount?: number;
+    isUnclaimed?: boolean;
+    hasWebsite?: boolean;
+    opportunityScore?: number;
+    smsMessage?: string;
+    emailSubject?: string;
+    emailBody?: string;
+  }>
+) {
+  const db = await getDb();
+  if (!db) return [];
+  if (results.length === 0) return [];
+  // Drizzle MySQL decimal columns require string values
+  const mapped = results.map((r) => ({
+    ...r,
+    rating: r.rating != null ? String(r.rating) : undefined,
+  }));
+  await db.insert(leadGenResults).values(mapped);
+  return db
+    .select()
+    .from(leadGenResults)
+    .where(eq(leadGenResults.agentId, results[0].agentId));
+}
+
+export async function getLeadGenResultsByAgentId(agentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(leadGenResults)
+    .where(eq(leadGenResults.agentId, agentId));
+}
+
+export async function updateLeadGenResultStatus(
+  id: number,
+  status: "new" | "outreach_sent" | "responded" | "saved_as_lead" | "dismissed",
+  savedLeadId?: number
+) {
+  const db = await getDb();
+  if (!db) return null;
+  await db
+    .update(leadGenResults)
+    .set({ status, ...(savedLeadId ? { savedLeadId } : {}) })
+    .where(eq(leadGenResults.id, id));
+  const rows = await db.select().from(leadGenResults).where(eq(leadGenResults.id, id));
+  return rows[0] ?? null;
 }

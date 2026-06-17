@@ -448,3 +448,63 @@ export const campaignExecutions = mysqlTable("campaignExecutions", {
 
 export type CampaignExecution = typeof campaignExecutions.$inferSelect;
 export type InsertCampaignExecution = typeof campaignExecutions.$inferInsert;
+
+// ============================================================================
+// LEAD GENERATION AGENT
+// ============================================================================
+
+export const leadGenAgents = mysqlTable("leadGenAgents", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  // Search targeting
+  industry: varchar("industry", { length: 100 }),
+  location: varchar("location", { length: 255 }),
+  radius: int("radius").default(25), // miles
+  targetKeywords: json("targetKeywords"), // string[]
+  filters: json("filters"), // { noWebsite, unclaimed, lowReviews, minScore }
+  // Outreach config
+  outreachChannel: mysqlEnum("outreachChannel", ["sms", "email", "both"]).default("both"),
+  outreachTone: mysqlEnum("outreachTone", ["professional", "friendly", "urgent", "consultative"]).default("friendly"),
+  valueProposition: text("valueProposition"),
+  // Status
+  status: mysqlEnum("status", ["draft", "active", "paused"]).default("draft").notNull(),
+  lastRunAt: timestamp("lastRunAt"),
+  totalProspectsFound: int("totalProspectsFound").default(0),
+  totalLeadsSaved: int("totalLeadsSaved").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LeadGenAgent = typeof leadGenAgents.$inferSelect;
+export type InsertLeadGenAgent = typeof leadGenAgents.$inferInsert;
+
+export const leadGenResults = mysqlTable("leadGenResults", {
+  id: int("id").autoincrement().primaryKey(),
+  agentId: int("agentId").notNull(),
+  clientId: int("clientId").notNull(),
+  // Prospect data
+  businessName: varchar("businessName", { length: 255 }).notNull(),
+  address: text("address"),
+  phone: varchar("phone", { length: 30 }),
+  website: varchar("website", { length: 500 }),
+  googlePlaceId: varchar("googlePlaceId", { length: 255 }),
+  rating: decimal("rating", { precision: 3, scale: 1 }),
+  reviewCount: int("reviewCount"),
+  isUnclaimed: boolean("isUnclaimed").default(false),
+  hasWebsite: boolean("hasWebsite").default(true),
+  opportunityScore: int("opportunityScore").default(0), // 0-100
+  // AI-generated outreach
+  smsMessage: text("smsMessage"),
+  emailSubject: varchar("emailSubject", { length: 255 }),
+  emailBody: text("emailBody"),
+  // Status
+  status: mysqlEnum("status", ["new", "outreach_sent", "responded", "saved_as_lead", "dismissed"]).default("new").notNull(),
+  savedLeadId: int("savedLeadId"), // FK to leads table if saved
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LeadGenResult = typeof leadGenResults.$inferSelect;
+export type InsertLeadGenResult = typeof leadGenResults.$inferInsert;

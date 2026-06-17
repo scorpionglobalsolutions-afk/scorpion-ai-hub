@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, BarChart3, CreditCard, Webhook, Calendar, Target, Zap, RotateCcw, CalendarCheck, Mic, MessageSquare, Search, Star, FileText, BookOpen, Megaphone } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, BarChart3, CreditCard, Webhook, Calendar, Target, Zap, RotateCcw, CalendarCheck, Mic, MessageSquare, Search, Star, FileText, BookOpen, Megaphone, Bot } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -32,6 +32,7 @@ const menuItems = [
   { icon: Users, label: "Clients", path: "/clients" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Target, label: "Prospect Finder", path: "/prospect-finder" },
+  { icon: Bot, label: "Lead Gen Agent", path: "/modules/lead-gen-agent" },
   { icon: CreditCard, label: "Billing", path: "/billing" },
   { icon: Calendar, label: "Scheduling", path: "/scheduling" },
   { icon: Webhook, label: "Webhooks", path: "/webhooks" },

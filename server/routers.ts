@@ -1,5 +1,6 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { leadGenAgentRouter } from "./leadGenAgentRouter";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
@@ -2052,6 +2053,7 @@ export const appRouter = router({
   billing: billingRouter,
   scheduling: schedulingRouter,
   prospectFinder: prospectFinderRouter,
+  leadGenAgent: leadGenAgentRouter,
 });
 
 export type AppRouter = typeof appRouter;

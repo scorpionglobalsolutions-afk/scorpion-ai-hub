@@ -9,6 +9,7 @@ import Reputation from "./modules/Reputation";
 import Content from "./modules/Content";
 import Reporting from "./modules/Reporting";
 import Campaigns from "./modules/Campaigns";
+import LeadGenAgent from "./modules/LeadGenAgent";
 import NotFound from "./NotFound";
 
 export default function ModulesRouter() {
@@ -31,6 +32,7 @@ export default function ModulesRouter() {
     "content": Content,
     "reporting": Reporting,
     "campaigns": Campaigns,
+    "lead-gen-agent": LeadGenAgent,
   };
 
   const Component = modules[moduleId];

@@ -181,3 +181,14 @@
 - [ ] Custom report builder
 - [ ] Integration testing across all new systems
 - [ ] Performance optimization
+
+### Lead Generation Agent Module
+- [x] Database schema: leadGenAgents + leadGenResults tables created and migrated
+- [x] DB helpers: create, update, delete, getById, listByClient, saveResults, updateResultStatus
+- [x] tRPC router: leadGenAgentRouter with listByClient, create, update, delete, run, getResults, updateResultStatus, saveProspectAsLead
+- [x] Agent run: Google Maps geocode → nearby search → place details → opportunity scoring → AI outreach generation
+- [x] Frontend: LeadGenAgent page with agent list, create dialog, run panel with filters, prospects tab with stats
+- [x] Frontend: ProspectCard with outreach preview (SMS/email), save to CRM, dismiss, mark outreach sent
+- [x] Sidebar nav: Lead Gen Agent added with Bot icon
+- [x] Route: /modules/lead-gen-agent registered in ModulesRouter
+- [x] TypeScript: 0 errors, 25 tests passing
