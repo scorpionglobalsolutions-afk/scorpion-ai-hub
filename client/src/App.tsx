@@ -14,6 +14,7 @@ import Billing from "./pages/Billing";
 import Scheduling from "./pages/Scheduling";
 import ModulesRouter from "./pages/ModulesRouter";
 import ProspectFinder from "./pages/ProspectFinder";
+import ClientDetail from "./pages/ClientDetail";
 
 function Router() {
   return (
@@ -26,6 +27,9 @@ function Router() {
       </Route>
       <Route path="/clients">
         <DashboardLayout><Clients /></DashboardLayout>
+      </Route>
+      <Route path="/clients/:id">
+        <DashboardLayout><ClientDetail /></DashboardLayout>
       </Route>
       <Route path="/analytics">
         <DashboardLayout><Analytics /></DashboardLayout>

@@ -17,7 +17,9 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
-
+import { getDb } from "./db";
+import { clients } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 // Brand color extraction utility
 async function extractBrandColors(websiteUrl: string): Promise<{ primary: string; secondary: string; accent: string; logo: string }> {
   const defaults = { primary: "#1e293b", secondary: "#334155", accent: "#f59e0b", logo: "" };
@@ -106,6 +108,50 @@ const clientRouter = router({
         details: input,
       });
       return result;
+    }),
+  update: protectedProcedure
+    .input(
+      z.object({
+        clientId: z.number(),
+        name: z.string().min(1).optional(),
+        email: z.string().email().optional().nullable(),
+        phone: z.string().optional().nullable(),
+        industry: z.string().optional().nullable(),
+        website: z.string().optional().nullable(),
+        description: z.string().optional().nullable(),
+        status: z.enum(["active", "inactive", "paused"]).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { clientId, ...fields } = input;
+      const database = await getDb();
+      if (!database) throw new Error("DB unavailable");
+      await database
+        .update(clients)
+        .set({ ...fields, updatedAt: new Date() })
+        .where(eq(clients.id, clientId));
+      await db.logActivity({
+        userId: ctx.user.id,
+        clientId,
+        action: "updated_client",
+        entityType: "client",
+        details: fields,
+      });
+      return { success: true };
+    }),
+  delete: protectedProcedure
+    .input(z.object({ clientId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const database = await getDb();
+      if (!database) throw new Error("DB unavailable");
+      await database.delete(clients).where(eq(clients.id, input.clientId));
+      await db.logActivity({
+        userId: ctx.user.id,
+        action: "deleted_client",
+        entityType: "client",
+        details: { clientId: input.clientId },
+      });
+      return { success: true };
     }),
 });
 
