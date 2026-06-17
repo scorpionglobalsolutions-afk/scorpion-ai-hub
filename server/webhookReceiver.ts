@@ -186,6 +186,21 @@ function extractLeadData(body: any): {
 } | null {
   if (!body) return null;
 
+  // n8n Resurrector Agent format: { lead_name, message, status }
+  if (body.lead_name || body.lead_email || body.lead_phone) {
+    // Strip leading = sign (n8n formula prefix bug)
+    const cleanName = (body.lead_name || "").replace(/^=+/, "").trim();
+    return {
+      name: cleanName || "Unknown",
+      email: body.lead_email || body.email || "",
+      phone: body.lead_phone || body.phone || "",
+      business: body.lead_company || body.business || "",
+      industry: body.lead_industry || body.industry || "",
+      source: body.source || body.status || "n8n-resurrector",
+      notes: body.message ? `Outreach: ${String(body.message).slice(0, 300)}` : "",
+    };
+  }
+
   // n8n SEO Scout format: { business_name, website_url, seo_report, lead_info, priority }
   if (body.business_name || body.lead_info) {
     const leadInfo = body.lead_info || {};
