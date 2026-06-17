@@ -192,3 +192,85 @@
 - [x] Sidebar nav: Lead Gen Agent added with Bot icon
 - [x] Route: /modules/lead-gen-agent registered in ModulesRouter
 - [x] TypeScript: 0 errors, 25 tests passing
+
+### 10 New AI Agent Modules (Priority Build)
+
+#### Module 1: Missed Call Text-Back Agent
+- [x] Schema: missedCallConfigs + missedCallEvents tables
+- [x] DB helpers: CRUD for configs and events
+- [x] tRPC router: missedCallRouter (list, create, update, delete, logEvent, getEvents, generateResponse)
+- [x] Frontend: MissedCallTextBack.tsx page
+- [x] Vitest: newModules.test.ts (structure + input validation tests)
+- [x] Sidebar + route registered (/modules/missed-call)
+
+#### Module 2: AI Review Request Agent
+- [ ] Schema: reviewRequestCampaigns + reviewRequestLogs tables
+- [ ] DB helpers: CRUD for campaigns and logs
+- [ ] tRPC router: reviewRequestRouter (list, create, update, delete, generateMessage, logSend)
+- [ ] Frontend: ReviewRequestAgent.tsx page
+- [ ] Vitest: reviewRequest.test.ts (campaign CRUD, message generation, log tracking)
+- [ ] Sidebar + route registered
+
+#### Module 3: Client Retention Agent
+- [ ] Schema: retentionRules + retentionEvents tables
+- [ ] DB helpers: CRUD for rules and events
+- [ ] tRPC router: retentionRouter (list, create, update, delete, generateMessage, logEvent)
+- [ ] Frontend: ClientRetentionAgent.tsx page
+- [ ] Vitest: retention.test.ts (rule CRUD, trigger logic, message generation)
+- [ ] Sidebar + route registered
+
+#### Module 4: Seasonal Campaign Planner
+- [ ] Schema: seasonalPlans + seasonalCampaignItems tables
+- [ ] DB helpers: CRUD for plans and items
+- [ ] tRPC router: seasonalPlannerRouter (list, create, generatePlan, update, delete)
+- [ ] Frontend: SeasonalCampaignPlanner.tsx page
+- [ ] Vitest: seasonalPlanner.test.ts (plan CRUD, AI generation, industry detection)
+- [ ] Sidebar + route registered
+
+#### Module 5: AI Proposal & Estimate Builder
+- [x] Schema: proposals table
+- [x] DB helpers: CRUD for proposals
+- [x] tRPC router: proposalRouter (list, create, generate, update, delete)
+- [x] Frontend: ProposalBuilder.tsx page with line items, AI generate, status workflow
+- [x] Vitest: newModules.test.ts (structure + validation + line item calculation tests)
+- [x] Sidebar + route registered (/modules/proposals)
+
+#### Module 6: GBP Post Scheduler
+- [ ] Schema: gbpPosts table
+- [ ] DB helpers: CRUD for posts
+- [ ] tRPC router: gbpPostRouter (list, create, generate, update, delete, updateStatus)
+- [ ] Frontend: GBPPostScheduler.tsx page
+- [ ] Vitest: gbpPost.test.ts (CRUD, AI generation, scheduling)
+- [ ] Sidebar + route registered
+
+#### Module 7: Pre-Qualification Funnel Builder
+- [x] Schema: preQualFunnels + preQualSubmissions tables
+- [x] DB helpers: CRUD for funnels and submissions
+- [x] tRPC router: preQualRouter (list, create, generateQuestions, submit, updateSubmission, delete)
+- [x] Frontend: PreQualFunnel.tsx page with AI question gen, scoring, hot/warm/cold/unqualified classification
+- [x] Vitest: newModules.test.ts (scoring algorithm, classification, edge cases)
+- [x] Sidebar + route registered (/modules/pre-qual)
+
+#### Module 8: Referral Campaign Agent
+- [ ] Schema: referralCampaigns + referralTracking tables
+- [ ] DB helpers: CRUD for campaigns and referrals
+- [ ] tRPC router: referralRouter (list, create, generateMessage, trackReferral, update, delete)
+- [ ] Frontend: ReferralCampaignAgent.tsx page
+- [ ] Vitest: referral.test.ts (campaign CRUD, referral tracking, message generation)
+- [ ] Sidebar + route registered
+
+#### Module 9: Client Portal / Presence Score Dashboard
+- [ ] Schema: presenceScores table
+- [ ] DB helpers: CRUD for presence scores
+- [ ] tRPC router: presenceRouter (getScore, generateScore, getHistory)
+- [ ] Frontend: PresenceDashboard.tsx page (internal view) + public client portal route
+- [ ] Vitest: presence.test.ts (score calculation, history tracking)
+- [ ] Sidebar + route registered
+
+#### Module 10: Website Chat Agent Builder
+- [x] Schema: chatAgents + chatConversations tables
+- [x] DB helpers: CRUD for agents and conversations
+- [x] tRPC router: chatAgentRouter (list, create, generateScript, update, delete, logConversation, getConversations)
+- [x] Frontend: ChatAgentBuilder.tsx page with AI script/FAQ gen, embed code generator, conversation log
+- [x] Vitest: newModules.test.ts (structure + input validation tests)
+- [x] Sidebar + route registered (/modules/chat-agent)

@@ -1,6 +1,16 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { leadGenAgentRouter } from "./leadGenAgentRouter";
+import { missedCallRouter } from "./missedCallRouter";
+import { reviewRequestRouter } from "./reviewRequestRouter";
+import { retentionRouter } from "./retentionRouter";
+import { seasonalPlannerRouter } from "./seasonalPlannerRouter";
+import { proposalRouter } from "./proposalRouter";
+import { gbpPostRouter } from "./gbpPostRouter";
+import { preQualRouter } from "./preQualRouter";
+import { referralRouter } from "./referralRouter";
+import { presenceRouter } from "./presenceRouter";
+import { chatAgentRouter } from "./chatAgentRouter";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
@@ -2054,6 +2064,16 @@ export const appRouter = router({
   scheduling: schedulingRouter,
   prospectFinder: prospectFinderRouter,
   leadGenAgent: leadGenAgentRouter,
+  missedCall: missedCallRouter,
+  reviewRequest: reviewRequestRouter,
+  retention: retentionRouter,
+  seasonalPlanner: seasonalPlannerRouter,
+  proposals: proposalRouter,
+  gbpPosts: gbpPostRouter,
+  preQual: preQualRouter,
+  referral: referralRouter,
+  presence: presenceRouter,
+  chatAgent: chatAgentRouter,
 });
 
 export type AppRouter = typeof appRouter;

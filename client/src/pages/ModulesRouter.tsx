@@ -10,6 +10,10 @@ import Content from "./modules/Content";
 import Reporting from "./modules/Reporting";
 import Campaigns from "./modules/Campaigns";
 import LeadGenAgent from "./modules/LeadGenAgent";
+import MissedCallTextBack from "./modules/MissedCallTextBack";
+import ProposalBuilder from "./modules/ProposalBuilder";
+import PreQualFunnel from "./modules/PreQualFunnel";
+import ChatAgentBuilder from "./modules/ChatAgentBuilder";
 import NotFound from "./NotFound";
 
 export default function ModulesRouter() {
@@ -33,6 +37,10 @@ export default function ModulesRouter() {
     "reporting": Reporting,
     "campaigns": Campaigns,
     "lead-gen-agent": LeadGenAgent,
+    "missed-call": MissedCallTextBack,
+    "proposals": ProposalBuilder,
+    "pre-qual": PreQualFunnel,
+    "chat-agent": ChatAgentBuilder,
   };
 
   const Component = modules[moduleId];

@@ -29,6 +29,13 @@
       "when": 1781664121948,
       "tag": "0003_tan_marauders",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1781665988914,
+      "tag": "0004_red_bug",
+      "breakpoints": true
     }
   ]
 }

@@ -508,3 +508,386 @@ export const leadGenResults = mysqlTable("leadGenResults", {
 
 export type LeadGenResult = typeof leadGenResults.$inferSelect;
 export type InsertLeadGenResult = typeof leadGenResults.$inferInsert;
+
+// ============================================================================
+// MISSED CALL TEXT-BACK AGENT
+// ============================================================================
+
+export const missedCallConfigs = mysqlTable("missedCallConfigs", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  businessName: varchar("businessName", { length: 255 }).notNull(),
+  industry: varchar("industry", { length: 100 }),
+  responseDelaySeconds: int("responseDelaySeconds").default(30).notNull(),
+  smsTemplate: text("smsTemplate"),
+  followUpTemplate: text("followUpTemplate"),
+  followUpDelayMinutes: int("followUpDelayMinutes").default(60),
+  isActive: boolean("isActive").default(true),
+  totalMissedCalls: int("totalMissedCalls").default(0),
+  totalResponded: int("totalResponded").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MissedCallConfig = typeof missedCallConfigs.$inferSelect;
+export type InsertMissedCallConfig = typeof missedCallConfigs.$inferInsert;
+
+export const missedCallEvents = mysqlTable("missedCallEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  configId: int("configId").notNull(),
+  clientId: int("clientId").notNull(),
+  callerPhone: varchar("callerPhone", { length: 30 }),
+  callerName: varchar("callerName", { length: 255 }),
+  smsSent: boolean("smsSent").default(false),
+  smsContent: text("smsContent"),
+  followUpSent: boolean("followUpSent").default(false),
+  responded: boolean("responded").default(false),
+  outcome: mysqlEnum("outcome", ["booked", "not_interested", "no_response", "wrong_number", "pending"]).default("pending"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MissedCallEvent = typeof missedCallEvents.$inferSelect;
+export type InsertMissedCallEvent = typeof missedCallEvents.$inferInsert;
+
+// ============================================================================
+// REVIEW REQUEST AGENT
+// ============================================================================
+
+export const reviewRequestCampaigns = mysqlTable("reviewRequestCampaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  businessName: varchar("businessName", { length: 255 }).notNull(),
+  industry: varchar("industry", { length: 100 }),
+  googleReviewLink: varchar("googleReviewLink", { length: 500 }),
+  channel: mysqlEnum("channel", ["sms", "email", "both"]).default("both"),
+  sendDelayHours: int("sendDelayHours").default(24),
+  smsTemplate: text("smsTemplate"),
+  emailSubjectTemplate: varchar("emailSubjectTemplate", { length: 255 }),
+  emailBodyTemplate: text("emailBodyTemplate"),
+  isActive: boolean("isActive").default(true),
+  totalSent: int("totalSent").default(0),
+  totalReviews: int("totalReviews").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ReviewRequestCampaign = typeof reviewRequestCampaigns.$inferSelect;
+export type InsertReviewRequestCampaign = typeof reviewRequestCampaigns.$inferInsert;
+
+export const reviewRequestLogs = mysqlTable("reviewRequestLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  clientId: int("clientId").notNull(),
+  customerName: varchar("customerName", { length: 255 }),
+  customerPhone: varchar("customerPhone", { length: 30 }),
+  customerEmail: varchar("customerEmail", { length: 320 }),
+  serviceDate: timestamp("serviceDate"),
+  serviceType: varchar("serviceType", { length: 255 }),
+  smsSent: boolean("smsSent").default(false),
+  emailSent: boolean("emailSent").default(false),
+  reviewLeft: boolean("reviewLeft").default(false),
+  reviewRating: int("reviewRating"),
+  status: mysqlEnum("status", ["pending", "sent", "reviewed", "no_response"]).default("pending"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ReviewRequestLog = typeof reviewRequestLogs.$inferSelect;
+export type InsertReviewRequestLog = typeof reviewRequestLogs.$inferInsert;
+
+// ============================================================================
+// CLIENT RETENTION AGENT
+// ============================================================================
+
+export const retentionRules = mysqlTable("retentionRules", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  industry: varchar("industry", { length: 100 }),
+  triggerType: mysqlEnum("triggerType", ["days_since_service", "days_before_renewal", "anniversary", "seasonal", "low_engagement"]).notNull(),
+  triggerDays: int("triggerDays").default(90),
+  channel: mysqlEnum("channel", ["sms", "email", "both"]).default("both"),
+  messageTemplate: text("messageTemplate"),
+  offerIncluded: boolean("offerIncluded").default(false),
+  offerDetails: text("offerDetails"),
+  isActive: boolean("isActive").default(true),
+  totalSent: int("totalSent").default(0),
+  totalConverted: int("totalConverted").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RetentionRule = typeof retentionRules.$inferSelect;
+export type InsertRetentionRule = typeof retentionRules.$inferInsert;
+
+export const retentionEvents = mysqlTable("retentionEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  ruleId: int("ruleId").notNull(),
+  clientId: int("clientId").notNull(),
+  customerName: varchar("customerName", { length: 255 }),
+  customerPhone: varchar("customerPhone", { length: 30 }),
+  customerEmail: varchar("customerEmail", { length: 320 }),
+  lastServiceDate: timestamp("lastServiceDate"),
+  generatedMessage: text("generatedMessage"),
+  sent: boolean("sent").default(false),
+  responded: boolean("responded").default(false),
+  converted: boolean("converted").default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RetentionEvent = typeof retentionEvents.$inferSelect;
+export type InsertRetentionEvent = typeof retentionEvents.$inferInsert;
+
+// ============================================================================
+// SEASONAL CAMPAIGN PLANNER
+// ============================================================================
+
+export const seasonalPlans = mysqlTable("seasonalPlans", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  industry: varchar("industry", { length: 100 }).notNull(),
+  location: varchar("location", { length: 255 }),
+  year: int("year").notNull(),
+  status: mysqlEnum("status", ["draft", "active", "archived"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SeasonalPlan = typeof seasonalPlans.$inferSelect;
+export type InsertSeasonalPlan = typeof seasonalPlans.$inferInsert;
+
+export const seasonalCampaignItems = mysqlTable("seasonalCampaignItems", {
+  id: int("id").autoincrement().primaryKey(),
+  planId: int("planId").notNull(),
+  clientId: int("clientId").notNull(),
+  month: int("month").notNull(), // 1-12
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  offerIdea: text("offerIdea"),
+  channels: json("channels"), // string[]
+  estimatedBudget: varchar("estimatedBudget", { length: 50 }),
+  priority: mysqlEnum("priority", ["high", "medium", "low"]).default("medium"),
+  status: mysqlEnum("status", ["planned", "in_progress", "completed", "skipped"]).default("planned"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SeasonalCampaignItem = typeof seasonalCampaignItems.$inferSelect;
+export type InsertSeasonalCampaignItem = typeof seasonalCampaignItems.$inferInsert;
+
+// ============================================================================
+// AI PROPOSAL & ESTIMATE BUILDER
+// ============================================================================
+
+export const proposals = mysqlTable("proposals", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  prospectName: varchar("prospectName", { length: 255 }).notNull(),
+  prospectEmail: varchar("prospectEmail", { length: 320 }),
+  prospectPhone: varchar("prospectPhone", { length: 30 }),
+  industry: varchar("industry", { length: 100 }),
+  serviceType: varchar("serviceType", { length: 255 }),
+  scopeOfWork: text("scopeOfWork"),
+  lineItems: json("lineItems"), // Array of { description, qty, unitPrice, total }
+  subtotal: varchar("subtotal", { length: 30 }),
+  tax: varchar("tax", { length: 30 }),
+  total: varchar("total", { length: 30 }),
+  validUntil: timestamp("validUntil"),
+  terms: text("terms"),
+  generatedContent: text("generatedContent"), // AI-generated proposal body
+  status: mysqlEnum("status", ["draft", "sent", "accepted", "declined", "expired"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Proposal = typeof proposals.$inferSelect;
+export type InsertProposal = typeof proposals.$inferInsert;
+
+// ============================================================================
+// GBP POST SCHEDULER
+// ============================================================================
+
+export const gbpPosts = mysqlTable("gbpPosts", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  businessName: varchar("businessName", { length: 255 }),
+  industry: varchar("industry", { length: 100 }),
+  postType: mysqlEnum("postType", ["offer", "update", "event", "product", "seasonal"]).notNull(),
+  title: varchar("title", { length: 255 }),
+  content: text("content"),
+  callToAction: varchar("callToAction", { length: 100 }),
+  ctaUrl: varchar("ctaUrl", { length: 500 }),
+  scheduledDate: timestamp("scheduledDate"),
+  status: mysqlEnum("status", ["draft", "scheduled", "published", "failed"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type GbpPost = typeof gbpPosts.$inferSelect;
+export type InsertGbpPost = typeof gbpPosts.$inferInsert;
+
+// ============================================================================
+// PRE-QUALIFICATION FUNNEL BUILDER
+// ============================================================================
+
+export const preQualFunnels = mysqlTable("preQualFunnels", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  industry: varchar("industry", { length: 100 }).notNull(),
+  serviceType: varchar("serviceType", { length: 255 }),
+  questions: json("questions"), // Array of { id, question, type, options, weight }
+  scoringRules: json("scoringRules"), // { hot: 80, warm: 50, cold: 0 }
+  isActive: boolean("isActive").default(true),
+  totalSubmissions: int("totalSubmissions").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PreQualFunnel = typeof preQualFunnels.$inferSelect;
+export type InsertPreQualFunnel = typeof preQualFunnels.$inferInsert;
+
+export const preQualSubmissions = mysqlTable("preQualSubmissions", {
+  id: int("id").autoincrement().primaryKey(),
+  funnelId: int("funnelId").notNull(),
+  clientId: int("clientId").notNull(),
+  prospectName: varchar("prospectName", { length: 255 }),
+  prospectEmail: varchar("prospectEmail", { length: 320 }),
+  prospectPhone: varchar("prospectPhone", { length: 30 }),
+  answers: json("answers"), // { questionId: answer }
+  score: int("score").default(0),
+  qualification: mysqlEnum("qualification", ["hot", "warm", "cold", "unqualified"]).default("cold"),
+  aiSummary: text("aiSummary"),
+  status: mysqlEnum("status", ["new", "contacted", "converted", "rejected"]).default("new"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PreQualSubmission = typeof preQualSubmissions.$inferSelect;
+export type InsertPreQualSubmission = typeof preQualSubmissions.$inferInsert;
+
+// ============================================================================
+// REFERRAL CAMPAIGN AGENT
+// ============================================================================
+
+export const referralCampaigns = mysqlTable("referralCampaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  rewardType: mysqlEnum("rewardType", ["discount", "gift_card", "cash", "service_credit", "custom"]).default("discount"),
+  rewardValue: varchar("rewardValue", { length: 100 }),
+  referrerMessage: text("referrerMessage"),
+  refereeMessage: text("refereeMessage"),
+  channel: mysqlEnum("channel", ["sms", "email", "both"]).default("both"),
+  isActive: boolean("isActive").default(true),
+  totalReferrals: int("totalReferrals").default(0),
+  totalConverted: int("totalConverted").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ReferralCampaign = typeof referralCampaigns.$inferSelect;
+export type InsertReferralCampaign = typeof referralCampaigns.$inferInsert;
+
+export const referralTracking = mysqlTable("referralTracking", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  clientId: int("clientId").notNull(),
+  referrerName: varchar("referrerName", { length: 255 }),
+  referrerPhone: varchar("referrerPhone", { length: 30 }),
+  referrerEmail: varchar("referrerEmail", { length: 320 }),
+  refereeName: varchar("refereeName", { length: 255 }),
+  refereePhone: varchar("refereePhone", { length: 30 }),
+  refereeEmail: varchar("refereeEmail", { length: 320 }),
+  referralCode: varchar("referralCode", { length: 50 }),
+  status: mysqlEnum("status", ["pending", "contacted", "converted", "rewarded"]).default("pending"),
+  rewardSent: boolean("rewardSent").default(false),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ReferralTracking = typeof referralTracking.$inferSelect;
+export type InsertReferralTracking = typeof referralTracking.$inferInsert;
+
+// ============================================================================
+// PRESENCE SCORE / CLIENT PORTAL
+// ============================================================================
+
+export const presenceScores = mysqlTable("presenceScores", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  overallScore: int("overallScore").default(0), // 0-100
+  googleRating: varchar("googleRating", { length: 10 }),
+  reviewCount: int("reviewCount").default(0),
+  websiteScore: int("websiteScore").default(0),
+  seoScore: int("seoScore").default(0),
+  socialScore: int("socialScore").default(0),
+  reputationScore: int("reputationScore").default(0),
+  details: json("details"), // Full breakdown
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PresenceScore = typeof presenceScores.$inferSelect;
+export type InsertPresenceScore = typeof presenceScores.$inferInsert;
+
+// ============================================================================
+// WEBSITE CHAT AGENT BUILDER
+// ============================================================================
+
+export const chatAgents = mysqlTable("chatAgents", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  businessName: varchar("businessName", { length: 255 }).notNull(),
+  industry: varchar("industry", { length: 100 }),
+  tone: mysqlEnum("tone", ["friendly", "professional", "casual", "formal"]).default("friendly"),
+  systemPrompt: text("systemPrompt"),
+  welcomeMessage: text("welcomeMessage"),
+  faqs: json("faqs"), // Array of { question, answer }
+  leadCaptureEnabled: boolean("leadCaptureEnabled").default(true),
+  bookingEnabled: boolean("bookingEnabled").default(false),
+  status: mysqlEnum("status", ["draft", "active", "paused"]).default("draft").notNull(),
+  totalConversations: int("totalConversations").default(0),
+  totalLeadsCaptured: int("totalLeadsCaptured").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ChatAgent = typeof chatAgents.$inferSelect;
+export type InsertChatAgent = typeof chatAgents.$inferInsert;
+
+export const chatConversations = mysqlTable("chatConversations", {
+  id: int("id").autoincrement().primaryKey(),
+  agentId: int("agentId").notNull(),
+  clientId: int("clientId").notNull(),
+  visitorName: varchar("visitorName", { length: 255 }),
+  visitorEmail: varchar("visitorEmail", { length: 320 }),
+  visitorPhone: varchar("visitorPhone", { length: 30 }),
+  messages: json("messages"), // Array of { role, content, timestamp }
+  leadCaptured: boolean("leadCaptured").default(false),
+  outcome: mysqlEnum("outcome", ["lead_captured", "booking_made", "faq_answered", "abandoned", "ongoing"]).default("ongoing"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ChatConversation = typeof chatConversations.$inferSelect;
+export type InsertChatConversation = typeof chatConversations.$inferInsert;
