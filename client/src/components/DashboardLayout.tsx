@@ -192,7 +192,7 @@ function DashboardLayoutContent({
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
                   <img
-                    src="/manus-storage/scorpion_logo_d2ffa99c.png"
+                    src="/manus-storage/scorpion-logo-new_f47bb456.jpg"
                     alt="OmniScorp"
                     className="h-7 w-auto object-contain"
                   />
