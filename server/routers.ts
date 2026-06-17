@@ -11,6 +11,7 @@ import { preQualRouter } from "./preQualRouter";
 import { referralRouter } from "./referralRouter";
 import { presenceRouter } from "./presenceRouter";
 import { chatAgentRouter } from "./chatAgentRouter";
+import { industryTemplateRouter } from "./industryTemplateRouter";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
@@ -2074,6 +2075,7 @@ export const appRouter = router({
   referral: referralRouter,
   presence: presenceRouter,
   chatAgent: chatAgentRouter,
+  industryTemplates: industryTemplateRouter,
 });
 
 export type AppRouter = typeof appRouter;

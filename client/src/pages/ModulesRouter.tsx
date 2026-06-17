@@ -14,6 +14,7 @@ import MissedCallTextBack from "./modules/MissedCallTextBack";
 import ProposalBuilder from "./modules/ProposalBuilder";
 import PreQualFunnel from "./modules/PreQualFunnel";
 import ChatAgentBuilder from "./modules/ChatAgentBuilder";
+import IndustryStarterPacks from "./modules/IndustryStarterPacks";
 import NotFound from "./NotFound";
 
 export default function ModulesRouter() {
@@ -41,6 +42,7 @@ export default function ModulesRouter() {
     "proposals": ProposalBuilder,
     "pre-qual": PreQualFunnel,
     "chat-agent": ChatAgentBuilder,
+    "industry-packs": IndustryStarterPacks,
   };
 
   const Component = modules[moduleId];

@@ -274,3 +274,18 @@
 - [x] Frontend: ChatAgentBuilder.tsx page with AI script/FAQ gen, embed code generator, conversation log
 - [x] Vitest: newModules.test.ts (structure + input validation tests)
 - [x] Sidebar + route registered (/modules/chat-agent)
+
+### Industry Starter Packs (GHL Snapshot Equivalent)
+- [ ] Design industry template data structure (JSON schema for scripts, sequences, proposals, voice scripts, objections)
+- [ ] Write HVAC industry content pack (voice script, follow-up sequences, proposal template, objection handlers, review request)
+- [ ] Write Roofing industry content pack
+- [ ] Write Pool Services industry content pack
+- [ ] Write Insurance (Life/Home/Auto) industry content pack
+- [ ] Write Business Loans / Business Credit industry content pack
+- [ ] Schema: industryTemplates table
+- [ ] DB helpers: CRUD for industry templates and onboarding logs
+- [ ] tRPC router: industryTemplateRouter (list, getByIndustry, applyToClient, listApplied)
+- [ ] Frontend: IndustryStarterPacks.tsx page with industry selector, preview, and one-click apply
+- [ ] Sidebar + route registered (/modules/industry-packs)
+- [ ] Dashboard module card added
+- [ ] Vitest: industryTemplate.test.ts

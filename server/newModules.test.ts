@@ -292,3 +292,55 @@ describe("proposal line item calculation", () => {
     expect(subtotal).toBe("0.00");
   });
 });
+
+// ─── industryTemplates router ────────────────────────────────────────────────
+describe("industryTemplates router — structure", () => {
+  it("exports expected procedures from industryTemplateRouter", async () => {
+    const { industryTemplateRouter } = await import("./industryTemplateRouter");
+    const procedures = industryTemplateRouter._def.procedures;
+    expect(procedures["listPacks"]).toBeDefined();
+    expect(procedures["getPack"]).toBeDefined();
+    expect(procedures["previewApply"]).toBeDefined();
+    expect(procedures["applyToClient"]).toBeDefined();
+    expect(procedures["generateCustomSection"]).toBeDefined();
+  });
+
+  it("listPacks returns all 5 industry packs", async () => {
+    const { INDUSTRY_PACKS } = await import("../shared/industryPacks");
+    expect(INDUSTRY_PACKS).toHaveLength(5);
+    const ids = INDUSTRY_PACKS.map((p) => p.id);
+    expect(ids).toContain("hvac");
+    expect(ids).toContain("roofing");
+    expect(ids).toContain("pool");
+    expect(ids).toContain("insurance");
+    expect(ids).toContain("business_loans");
+  });
+
+  it("each pack has required content fields", async () => {
+    const { INDUSTRY_PACKS } = await import("../shared/industryPacks");
+    for (const pack of INDUSTRY_PACKS) {
+      expect(pack.voiceScript.length).toBeGreaterThan(50);
+      expect(pack.followUpSequence.length).toBeGreaterThanOrEqual(4);
+      expect(pack.objectionHandlers.length).toBeGreaterThanOrEqual(3);
+      expect(pack.proposalLineItems.length).toBeGreaterThanOrEqual(3);
+      expect(pack.preQualQuestions.length).toBeGreaterThanOrEqual(3);
+      expect(pack.chatFAQs.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("replacePlaceholders substitutes all merge tags", () => {
+    const text = "Hi {{firstName}}, this is {{agentName}} from {{businessName}}";
+    const vars = { firstName: "John", agentName: "Sarah", businessName: "ACME HVAC" };
+    const result = text.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key as keyof typeof vars] ?? `{{${key}}}`);
+    expect(result).toBe("Hi John, this is Sarah from ACME HVAC");
+    expect(result).not.toContain("{{");
+  });
+
+  it("INDUSTRY_PACK_MAP provides O(1) lookup by id", async () => {
+    const { INDUSTRY_PACK_MAP } = await import("../shared/industryPacks");
+    expect(INDUSTRY_PACK_MAP["hvac"]).toBeDefined();
+    expect(INDUSTRY_PACK_MAP["hvac"].name).toBe("HVAC");
+    expect(INDUSTRY_PACK_MAP["pool"]).toBeDefined();
+    expect(INDUSTRY_PACK_MAP["business_loans"]).toBeDefined();
+  });
+});

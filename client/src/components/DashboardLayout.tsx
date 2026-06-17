@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, BarChart3, CreditCard, Webhook, Calendar, Target, Zap, RotateCcw, CalendarCheck, Mic, MessageSquare, Search, Star, FileText, BookOpen, Megaphone, Bot, PhoneMissed, ClipboardList, Filter, MessageCircle } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, BarChart3, CreditCard, Webhook, Calendar, Target, Zap, RotateCcw, CalendarCheck, Mic, MessageSquare, Search, Star, FileText, BookOpen, Megaphone, Bot, PhoneMissed, ClipboardList, Filter, MessageCircle, Sparkles } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -50,6 +50,7 @@ const menuItems = [
   { icon: ClipboardList, label: "Proposals & Estimates", path: "/modules/proposals" },
   { icon: Filter, label: "Pre-Qual Funnel", path: "/modules/pre-qual" },
   { icon: MessageCircle, label: "Chat Agent Builder", path: "/modules/chat-agent" },
+  { icon: Sparkles, label: "Industry Starter Packs", path: "/modules/industry-packs" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

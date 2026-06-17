@@ -27,6 +27,7 @@ import {
   ClipboardList,
   Filter,
   MessageCircle,
+  Sparkles,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -135,6 +136,13 @@ const MODULE_CARDS = [
     description: "Build 24/7 AI chat agents that capture leads on any website",
     icon: MessageCircle,
     color: "from-cyan-500 to-teal-500",
+  },
+  {
+    id: "industry-packs",
+    title: "Industry Starter Packs",
+    description: "One-click templates for HVAC, Roofing, Pool, Insurance & Loans",
+    icon: Sparkles,
+    color: "from-yellow-500 to-orange-500",
   },
 ];
 
@@ -286,7 +294,7 @@ export default function Dashboard() {
                   backgroundClip: "text"
                 }}
               >
-                10
+                16
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Modules available
