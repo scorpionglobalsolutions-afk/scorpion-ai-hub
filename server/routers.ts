@@ -18,7 +18,26 @@ import { z } from "zod";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
 import { getDb } from "./db";
-import { clients } from "../drizzle/schema";
+import {
+  clients,
+  campaigns,
+  sequences,
+  voiceAssistants,
+  seoAudits,
+  reviews,
+  contentAssets,
+  leadGenAgents,
+  missedCallConfigs,
+  reviewRequestCampaigns,
+  retentionRules,
+  seasonalPlans,
+  proposals,
+  gbpPosts,
+  preQualFunnels,
+  referralCampaigns,
+  chatAgents,
+  appointments,
+} from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 // Brand color extraction utility
 async function extractBrandColors(websiteUrl: string): Promise<{ primary: string; secondary: string; accent: string; logo: string }> {
@@ -152,6 +171,70 @@ const clientRouter = router({
         details: { clientId: input.clientId },
       });
       return { success: true };
+    }),
+  getProducts: protectedProcedure
+    .input(z.object({ clientId: z.number() }))
+    .query(async ({ input }) => {
+      const { clientId } = input;
+      const database = await getDb();
+      if (!database) throw new Error("DB unavailable");
+      // Query all module tables for this client in parallel
+      const [
+        campaignRows,
+        sequenceRows,
+        voiceRows,
+        seoRows,
+        reviewRows,
+        contentRows,
+        leadGenRows,
+        missedCallRows,
+        reviewRequestRows,
+        retentionRows,
+        seasonalRows,
+        proposalRows,
+        gbpRows,
+        preQualRows,
+        referralRows,
+        chatAgentRows,
+        appointmentRows,
+      ] = await Promise.all([
+        database.select().from(campaigns).where(eq(campaigns.clientId, clientId)),
+        database.select().from(sequences).where(eq(sequences.clientId, clientId)),
+        database.select().from(voiceAssistants).where(eq(voiceAssistants.clientId, clientId)),
+        database.select().from(seoAudits).where(eq(seoAudits.clientId, clientId)),
+        database.select().from(reviews).where(eq(reviews.clientId, clientId)),
+        database.select().from(contentAssets).where(eq(contentAssets.clientId, clientId)),
+        database.select().from(leadGenAgents).where(eq(leadGenAgents.clientId, clientId)),
+        database.select().from(missedCallConfigs).where(eq(missedCallConfigs.clientId, clientId)),
+        database.select().from(reviewRequestCampaigns).where(eq(reviewRequestCampaigns.clientId, clientId)),
+        database.select().from(retentionRules).where(eq(retentionRules.clientId, clientId)),
+        database.select().from(seasonalPlans).where(eq(seasonalPlans.clientId, clientId)),
+        database.select().from(proposals).where(eq(proposals.clientId, clientId)),
+        database.select().from(gbpPosts).where(eq(gbpPosts.clientId, clientId)),
+        database.select().from(preQualFunnels).where(eq(preQualFunnels.clientId, clientId)),
+        database.select().from(referralCampaigns).where(eq(referralCampaigns.clientId, clientId)),
+        database.select().from(chatAgents).where(eq(chatAgents.clientId, clientId)),
+        database.select().from(appointments).where(eq(appointments.clientId, clientId)),
+      ]);
+      return [
+        { module: "Campaigns", path: "campaigns", icon: "Megaphone", count: campaignRows.length, active: campaignRows.some((r: any) => r.status === "active"), items: campaignRows.map((r: any) => ({ id: r.id, name: r.name, status: r.status })) },
+        { module: "Follow-Up Sequences", path: "sequences", icon: "MessageSquare", count: sequenceRows.length, active: sequenceRows.some((r: any) => r.status === "active"), items: sequenceRows.map((r: any) => ({ id: r.id, name: r.name, status: r.status })) },
+        { module: "Voice Assistant", path: "voice", icon: "Mic", count: voiceRows.length, active: voiceRows.some((r: any) => r.status === "active"), items: voiceRows.map((r: any) => ({ id: r.id, name: r.name, status: r.status })) },
+        { module: "SEO Audits", path: "seo-audit", icon: "Search", count: seoRows.length, active: seoRows.length > 0, items: seoRows.map((r: any) => ({ id: r.id, name: r.businessName ?? "Audit", status: "completed" })) },
+        { module: "Reputation / Reviews", path: "reputation", icon: "Star", count: reviewRows.length, active: reviewRows.length > 0, items: reviewRows.map((r: any) => ({ id: r.id, name: r.reviewerName ?? "Review", status: r.responded ? "responded" : "pending" })) },
+        { module: "Content Assets", path: "content", icon: "Pen", count: contentRows.length, active: contentRows.length > 0, items: contentRows.map((r: any) => ({ id: r.id, name: r.title ?? r.type, status: r.status ?? "draft" })) },
+        { module: "Lead Gen Agent", path: "lead-gen-agent", icon: "Bot", count: leadGenRows.length, active: leadGenRows.some((r: any) => r.status === "active"), items: leadGenRows.map((r: any) => ({ id: r.id, name: r.name, status: r.status })) },
+        { module: "Missed Call Text-Back", path: "missed-call", icon: "PhoneMissed", count: missedCallRows.length, active: missedCallRows.some((r: any) => r.isActive), items: missedCallRows.map((r: any) => ({ id: r.id, name: r.name, status: r.isActive ? "active" : "inactive" })) },
+        { module: "Review Request", path: "review-request", icon: "ThumbsUp", count: reviewRequestRows.length, active: reviewRequestRows.some((r: any) => r.status === "active"), items: reviewRequestRows.map((r: any) => ({ id: r.id, name: r.name, status: r.status })) },
+        { module: "Client Retention", path: "retention", icon: "Heart", count: retentionRows.length, active: retentionRows.some((r: any) => r.isActive), items: retentionRows.map((r: any) => ({ id: r.id, name: r.name, status: r.isActive ? "active" : "inactive" })) },
+        { module: "Seasonal Planner", path: "seasonal-planner", icon: "Calendar", count: seasonalRows.length, active: seasonalRows.length > 0, items: seasonalRows.map((r: any) => ({ id: r.id, name: r.name, status: "planned" })) },
+        { module: "Proposals", path: "proposals", icon: "ClipboardList", count: proposalRows.length, active: proposalRows.some((r: any) => r.status === "accepted"), items: proposalRows.map((r: any) => ({ id: r.id, name: r.title, status: r.status })) },
+        { module: "GBP Posts", path: "gbp-posts", icon: "Globe", count: gbpRows.length, active: gbpRows.some((r: any) => r.status === "published"), items: gbpRows.map((r: any) => ({ id: r.id, name: r.title, status: r.status })) },
+        { module: "Pre-Qual Funnel", path: "pre-qual", icon: "Filter", count: preQualRows.length, active: preQualRows.some((r: any) => r.isActive), items: preQualRows.map((r: any) => ({ id: r.id, name: r.name, status: r.isActive ? "active" : "inactive" })) },
+        { module: "Referral Campaigns", path: "referral", icon: "Share2", count: referralRows.length, active: referralRows.some((r: any) => r.status === "active"), items: referralRows.map((r: any) => ({ id: r.id, name: r.name, status: r.status })) },
+        { module: "Chat Agent", path: "chat-agent", icon: "MessageCircle", count: chatAgentRows.length, active: chatAgentRows.some((r: any) => r.status === "active"), items: chatAgentRows.map((r: any) => ({ id: r.id, name: r.name, status: r.status })) },
+        { module: "Appointments", path: "appointments", icon: "Calendar", count: appointmentRows.length, active: appointmentRows.some((r: any) => r.status === "scheduled"), items: appointmentRows.map((r: any) => ({ id: r.id, name: r.leadName ?? "Appointment", status: r.status })) },
+      ];
     }),
 });
 

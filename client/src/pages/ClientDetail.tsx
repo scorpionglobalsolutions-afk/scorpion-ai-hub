@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Building2,
@@ -51,6 +52,11 @@ import {
   Sparkles,
   ExternalLink,
   Clock,
+  Package,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -77,6 +83,136 @@ const MODULE_SHORTCUTS = [
   { id: "chat-agent", label: "Chat Agent", icon: MessageCircle, color: "from-cyan-500 to-teal-500" },
   { id: "industry-packs", label: "Industry Packs", icon: Sparkles, color: "from-yellow-500 to-orange-500" },
 ];
+
+// ─── Active Products Panel ───────────────────────────────────────────────────
+function ActiveProductsPanel({ clientId, onNavigate }: { clientId: number; onNavigate: (path: string) => void }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const { data: products, isLoading } = trpc.clients.getProducts.useQuery(
+    { clientId },
+    { enabled: !!clientId }
+  );
+
+  if (isLoading) return <div className="flex justify-center py-10"><Spinner /></div>;
+
+  const active = (products ?? []).filter((p: any) => p.count > 0);
+  const inactive = (products ?? []).filter((p: any) => p.count === 0);
+
+  return (
+    <div className="space-y-4">
+      {/* Summary row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <Card className="border-border">
+          <CardContent className="pt-4">
+            <p className="text-2xl font-bold text-foreground">{active.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Modules in use</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border">
+          <CardContent className="pt-4">
+            <p className="text-2xl font-bold text-green-400">{(products ?? []).filter((p: any) => p.active).length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Active / running</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border">
+          <CardContent className="pt-4">
+            <p className="text-2xl font-bold text-foreground">{(products ?? []).reduce((s: number, p: any) => s + p.count, 0)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Total records</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border">
+          <CardContent className="pt-4">
+            <p className="text-2xl font-bold text-muted-foreground">{inactive.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Not yet set up</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Active modules */}
+      {active.length > 0 && (
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground text-base">Modules In Use</CardTitle>
+            <CardDescription>Click a module to expand its records</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {active.map((product: any) => (
+              <div key={product.module} className="border border-border rounded-lg overflow-hidden">
+                <button
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-card/80 transition-colors"
+                  onClick={() => setExpanded(expanded === product.module ? null : product.module)}
+                >
+                  <div className="flex items-center gap-3">
+                    {product.active
+                      ? <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                      : <XCircle className="w-4 h-4 text-yellow-400 shrink-0" />}
+                    <span className="text-sm font-medium text-foreground">{product.module}</span>
+                    <Badge variant="outline" className="text-xs">{product.count} record{product.count !== 1 ? "s" : ""}</Badge>
+                    {product.active && <Badge className="text-xs bg-green-500/20 text-green-400 border-green-500/30 border">Active</Badge>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7 px-2"
+                      onClick={(e) => { e.stopPropagation(); onNavigate(`/modules/${product.path}`); }}
+                    >
+                      Open <ExternalLink className="w-3 h-3 ml-1" />
+                    </Button>
+                    {expanded === product.module
+                      ? <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                  </div>
+                </button>
+                {expanded === product.module && (
+                  <div className="border-t border-border bg-background/50 px-4 py-3 space-y-2">
+                    {product.items.map((item: any) => (
+                      <div key={item.id} className="flex items-center justify-between text-sm">
+                        <span className="text-foreground">{item.name}</span>
+                        <Badge variant="outline" className="text-xs capitalize">{item.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Not set up */}
+      {inactive.length > 0 && (
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground text-base text-muted-foreground">Not Yet Set Up</CardTitle>
+            <CardDescription>These modules have no records for this client yet</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {inactive.map((product: any) => (
+                <button
+                  key={product.module}
+                  onClick={() => onNavigate(`/modules/${product.path}`)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border text-xs text-muted-foreground hover:text-foreground hover:border-[oklch(0.72_0.12_75)]/50 transition-colors"
+                >
+                  <XCircle className="w-3 h-3" />
+                  {product.module}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {active.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <Package className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No modules set up for this client yet.</p>
+          <p className="text-xs mt-1">Switch to the Launch Module tab to get started.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ClientDetail() {
   const params = useParams<{ id: string }>();
@@ -304,72 +440,79 @@ export default function ClientDetail() {
           </Card>
         </div>
 
-        {/* Module Shortcuts */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle className="text-foreground">Launch a Module for This Client</CardTitle>
-            <CardDescription>Click any module to open it — the client will be pre-selected</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-              {MODULE_SHORTCUTS.map((mod) => {
-                const Icon = mod.icon;
-                return (
-                  <button
-                    key={mod.id}
-                    onClick={() => navigate(`/modules/${mod.id}`)}
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border hover:border-[oklch(0.72_0.12_75)]/50 hover:bg-card transition-all group cursor-pointer"
-                  >
-                    <div className={`p-2 rounded-lg bg-gradient-to-br ${mod.color} text-white`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">
-                      {mod.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tabs: Products + Modules + Activity */}
+        <Tabs defaultValue="products">
+          <TabsList className="bg-card border border-border">
+            <TabsTrigger value="products" className="gap-2"><Package className="w-4 h-4" />Active Products</TabsTrigger>
+            <TabsTrigger value="modules" className="gap-2"><Zap className="w-4 h-4" />Launch Module</TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2"><Clock className="w-4 h-4" />Activity</TabsTrigger>
+          </TabsList>
 
-        {/* Recent Activity */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle className="text-foreground">Recent Activity</CardTitle>
-            <CardDescription>Last 10 actions for this client</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {activityLoading ? (
-              <div className="flex justify-center py-6"><Spinner /></div>
-            ) : !activity || activity.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No activity yet for this client.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {activity.map((log: any) => (
-                  <div
-                    key={log.id}
-                    className="flex items-center justify-between py-3 border-b border-border last:border-0"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-foreground capitalize">
-                        {log.action.replace(/_/g, " ")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(log.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {log.entityType}
-                    </Badge>
+          {/* ACTIVE PRODUCTS TAB */}
+          <TabsContent value="products" className="mt-4">
+            <ActiveProductsPanel clientId={clientId} onNavigate={navigate} />
+          </TabsContent>
+
+          {/* LAUNCH MODULE TAB */}
+          <TabsContent value="modules" className="mt-4">
+            <Card className="border-border">
+              <CardHeader>
+                <CardTitle className="text-foreground">Launch a Module for This Client</CardTitle>
+                <CardDescription>Click any module to open it</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                  {MODULE_SHORTCUTS.map((mod) => {
+                    const Icon = mod.icon;
+                    return (
+                      <button
+                        key={mod.id}
+                        onClick={() => navigate(`/modules/${mod.id}`)}
+                        className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border hover:border-[oklch(0.72_0.12_75)]/50 hover:bg-card transition-all group cursor-pointer"
+                      >
+                        <div className={`p-2 rounded-lg bg-gradient-to-br ${mod.color} text-white`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">
+                          {mod.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ACTIVITY TAB */}
+          <TabsContent value="activity" className="mt-4">
+            <Card className="border-border">
+              <CardHeader>
+                <CardTitle className="text-foreground">Recent Activity</CardTitle>
+                <CardDescription>Last 10 actions logged</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {activityLoading ? (
+                  <div className="flex justify-center py-6"><Spinner /></div>
+                ) : !activity || activity.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">No activity yet for this client.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {activity.map((log: any) => (
+                      <div key={log.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                        <div>
+                          <p className="text-sm font-medium text-foreground capitalize">{log.action.replace(/_/g, " ")}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(log.createdAt).toLocaleString()}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs capitalize">{log.entityType}</Badge>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Edit Dialog */}
