@@ -21,6 +21,12 @@ import {
   TrendingUp,
   ArrowRight,
   Target,
+  Megaphone,
+  Bot,
+  PhoneMissed,
+  ClipboardList,
+  Filter,
+  MessageCircle,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -87,6 +93,48 @@ const MODULE_CARDS = [
     description: "LLM-powered narrative reports for client performance",
     icon: BarChart3,
     color: "from-violet-500 to-purple-500",
+  },
+  {
+    id: "campaigns",
+    title: "Campaigns",
+    description: "Build and track multi-channel marketing campaigns",
+    icon: Megaphone,
+    color: "from-amber-500 to-orange-500",
+  },
+  {
+    id: "lead-gen-agent",
+    title: "Lead Gen Agent",
+    description: "AI-powered Google Maps prospect finder with outreach generation",
+    icon: Bot,
+    color: "from-sky-500 to-blue-500",
+  },
+  {
+    id: "missed-call",
+    title: "Missed Call Text-Back",
+    description: "Auto-text prospects the moment a call is missed",
+    icon: PhoneMissed,
+    color: "from-red-500 to-rose-500",
+  },
+  {
+    id: "proposals",
+    title: "Proposals & Estimates",
+    description: "AI-generated professional proposals with line items",
+    icon: ClipboardList,
+    color: "from-blue-500 to-indigo-500",
+  },
+  {
+    id: "pre-qual",
+    title: "Pre-Qual Funnel",
+    description: "Score and qualify prospects before your team calls",
+    icon: Filter,
+    color: "from-purple-500 to-violet-500",
+  },
+  {
+    id: "chat-agent",
+    title: "Chat Agent Builder",
+    description: "Build 24/7 AI chat agents that capture leads on any website",
+    icon: MessageCircle,
+    color: "from-cyan-500 to-teal-500",
   },
 ];
 
