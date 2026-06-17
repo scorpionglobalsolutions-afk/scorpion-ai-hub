@@ -211,7 +211,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src="/manus-storage/scorpion_logo_d2ffa99c.png"
+                src="/manus-storage/scorpion-logo-new_f47bb456.jpg"
                 alt="Scorpion Global Solutions"
                 className="h-12 w-auto"
               />
