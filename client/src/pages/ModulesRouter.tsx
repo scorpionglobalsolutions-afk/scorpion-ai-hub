@@ -8,6 +8,7 @@ import SEOAudit from "./modules/SEOAudit";
 import Reputation from "./modules/Reputation";
 import Content from "./modules/Content";
 import Reporting from "./modules/Reporting";
+import Campaigns from "./modules/Campaigns";
 import NotFound from "./NotFound";
 
 export default function ModulesRouter() {
@@ -29,6 +30,7 @@ export default function ModulesRouter() {
     "reputation": Reputation,
     "content": Content,
     "reporting": Reporting,
+    "campaigns": Campaigns,
   };
 
   const Component = modules[moduleId];

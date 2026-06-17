@@ -3,14 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import { Zap, BarChart3, Rocket, ArrowRight, Search, Users, Star } from "lucide-react";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
   if (isAuthenticated) {
-    navigate("/dashboard");
     return null;
   }
 

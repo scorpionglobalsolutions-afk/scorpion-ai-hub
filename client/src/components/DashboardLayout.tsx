@@ -21,15 +21,30 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, BarChart3, CreditCard, Webhook, Calendar, Target, Zap, RotateCcw, CalendarCheck, Mic, MessageSquare, Search, Star, FileText, BookOpen, Megaphone } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Users, label: "Clients", path: "/clients" },
+  { icon: BarChart3, label: "Analytics", path: "/analytics" },
+  { icon: Target, label: "Prospect Finder", path: "/prospect-finder" },
+  { icon: CreditCard, label: "Billing", path: "/billing" },
+  { icon: Calendar, label: "Scheduling", path: "/scheduling" },
+  { icon: Webhook, label: "Webhooks", path: "/webhooks" },
+  { icon: Zap, label: "Speed to Lead", path: "/modules/speed-to-lead" },
+  { icon: RotateCcw, label: "DB Reactivation", path: "/modules/reactivation" },
+  { icon: CalendarCheck, label: "Appointments", path: "/modules/appointments" },
+  { icon: Mic, label: "Voice Assistant", path: "/modules/voice" },
+  { icon: MessageSquare, label: "Follow-Up Sequences", path: "/modules/sequences" },
+  { icon: Search, label: "SEO Audit", path: "/modules/seo-audit" },
+  { icon: Star, label: "Reputation", path: "/modules/reputation" },
+  { icon: BookOpen, label: "Content", path: "/modules/content" },
+  { icon: FileText, label: "Reporting", path: "/modules/reporting" },
+  { icon: Megaphone, label: "Campaigns", path: "/modules/campaigns" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
