@@ -15,6 +15,7 @@ import Scheduling from "./pages/Scheduling";
 import ModulesRouter from "./pages/ModulesRouter";
 import ProspectFinder from "./pages/ProspectFinder";
 import ClientDetail from "./pages/ClientDetail";
+import LeadsInbox from "./pages/LeadsInbox";
 
 function Router() {
   return (
@@ -45,6 +46,9 @@ function Router() {
       </Route>
       <Route path="/prospect-finder">
         <DashboardLayout><ProspectFinder /></DashboardLayout>
+      </Route>
+      <Route path="/leads">
+        <DashboardLayout><LeadsInbox /></DashboardLayout>
       </Route>
       <Route path="/modules/:moduleId">
         <DashboardLayout><ModulesRouter /></DashboardLayout>

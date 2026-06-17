@@ -301,6 +301,18 @@ const leadRouter = router({
       return db.getLeadsByCampaignId(input.campaignId);
     }),
 
+  listAll: protectedProcedure
+    .input(z.object({ limit: z.number().optional() }).optional())
+    .query(async ({ input }) => {
+      return db.getAllLeads(input?.limit ?? 100);
+    }),
+
+  updateStatus: protectedProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["new", "contacted", "qualified", "converted", "lost"]) }))
+    .mutation(async ({ input }) => {
+      return db.updateLeadStatus(input.id, input.status);
+    }),
+
   create: protectedProcedure
     .input(
       z.object({

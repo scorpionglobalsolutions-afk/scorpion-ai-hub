@@ -210,6 +210,18 @@ export async function getLeadById(leadId: number) {
   return result[0] || null;
 }
 
+export async function getAllLeads(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(leads).orderBy(leads.createdAt).limit(limit);
+}
+
+export async function updateLeadStatus(id: number, status: "new" | "contacted" | "qualified" | "converted" | "lost") {
+  const db = await getDb();
+  if (!db) return null;
+  return db.update(leads).set({ status }).where(eq(leads.id, id));
+}
+
 export async function createLead(data: {
   campaignId: number;
   clientId: number;
