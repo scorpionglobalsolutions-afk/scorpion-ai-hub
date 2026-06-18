@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -378,6 +380,8 @@ export default function SEOAudit() {
   const [showOverrides, setShowOverrides] = useState(false);
   const [overrideReviewCount, setOverrideReviewCount] = useState("");
   const [overrideRating, setOverrideRating] = useState("");
+  const [isPdfGenerating, setIsPdfGenerating] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const generateAudit = trpc.seoAudit.generateAudit.useMutation({
     onSuccess: (data: any) => {
@@ -402,6 +406,47 @@ export default function SEOAudit() {
       industry: industry || undefined, location: location || undefined,
       overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
     });
+  };
+
+  const handleExportPDF = async () => {
+    if (!report || !reportRef.current) return;
+    setIsPdfGenerating(true);
+    toast.info("Generating PDF — this takes about 10 seconds...");
+    try {
+      const element = reportRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#f8fafc",
+        logging: false,
+        windowWidth: 1200,
+      });
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = pdfWidth / imgWidth;
+      const scaledHeight = imgHeight * ratio;
+      let yOffset = 0;
+      let pageCount = 0;
+      while (yOffset < scaledHeight) {
+        if (pageCount > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, -yOffset, pdfWidth, scaledHeight);
+        yOffset += pdfHeight;
+        pageCount++;
+      }
+      const filename = `Profit_Leakage_Report_${businessName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+      pdf.save(filename);
+      toast.success("PDF exported successfully!");
+    } catch (err) {
+      console.error("PDF export error:", err);
+      toast.error("PDF export failed. Try the HTML download instead.");
+    } finally {
+      setIsPdfGenerating(false);
+    }
   };
 
   const handleDownload = () => {
@@ -495,7 +540,7 @@ export default function SEOAudit() {
 
         {/* Report Display */}
         {report && (
-          <div className="space-y-6">
+          <div className="space-y-6" ref={reportRef}>
 
             {/* Overall Grade Header */}
             <Card className="border-0 shadow-lg overflow-hidden">
@@ -843,11 +888,17 @@ export default function SEOAudit() {
               </Card>
             )}
 
-            {/* Download Button */}
-            <div className="flex justify-center pt-2 pb-6">
-              <Button onClick={handleDownload} size="lg"
-                className="bg-gradient-to-r from-[#1B2945] to-[#2d3f6b] hover:from-[#0f1c35] hover:to-[#1B2945] text-white px-8">
-                <Download className="w-5 h-5 mr-2" /> Download Profit Leakage Report (HTML)
+            {/* Export Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2 pb-6">
+              <Button onClick={handleExportPDF} size="lg" disabled={isPdfGenerating}
+                className="bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 text-white px-8 shadow-lg">
+                {isPdfGenerating
+                  ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Generating PDF...</>
+                  : <><Download className="w-5 h-5 mr-2" /> Export as PDF</>}
+              </Button>
+              <Button onClick={handleDownload} size="lg" variant="outline"
+                className="border-[#1B2945] text-[#1B2945] hover:bg-[#1B2945] hover:text-white px-8 bg-white">
+                <Download className="w-4 h-4 mr-2" /> Download HTML Version
               </Button>
             </div>
 
