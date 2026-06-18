@@ -989,26 +989,26 @@ const seoAuditRouter = router({
         // Use brand colors from website analysis
         let brandColors = scrapedData.website.brandColors;
         
-        // Step 2: Build the LLM prompt with REAL scraped data
+        // ── Step 2: Build Loss-Led LLM prompt with REAL scraped data ──────────
         const realDataContext = `
-Here is REAL verified data scraped from the business. DO NOT hallucinate or make up data. Use ONLY these facts:
+REAL VERIFIED DATA — DO NOT HALLUCINATE. Use ONLY these facts:
 
 WEBSITE ANALYSIS (${scrapedData.website.url || 'No website'}):
 - Accessible: ${scrapedData.website.isAccessible}
 - HTTPS: ${scrapedData.website.isHttps}
 - Mobile Friendly: ${scrapedData.website.isMobileFriendly}
-- Has Title Tag: ${scrapedData.website.hasTitle} ("${scrapedData.website.title}")
-- Has Meta Description: ${scrapedData.website.hasMetaDescription} ("${scrapedData.website.metaDescription}")
-- H1 Count: ${scrapedData.website.h1Count}
+- Title Tag: ${scrapedData.website.hasTitle} ("${scrapedData.website.title}")
+- Meta Description: ${scrapedData.website.hasMetaDescription} ("${scrapedData.website.metaDescription}")
+- H1 Count: ${scrapedData.website.h1Count} (CRITICAL: more than 1 = SEO conflict penalty)
 - H2 Count: ${scrapedData.website.h2Count}
-- Has Phone: ${scrapedData.website.hasPhone} (${scrapedData.website.phone})
-- Has Address: ${scrapedData.website.hasAddress} (${scrapedData.website.address})
+- Phone on Site: ${scrapedData.website.hasPhone} (${scrapedData.website.phone})
+- Address on Site: ${scrapedData.website.hasAddress} (${scrapedData.website.address})
 - Schema Markup: ${scrapedData.website.hasSchemaMarkup}
-- Has Social Links: ${scrapedData.website.hasSocialLinks} (${scrapedData.website.socialLinksFound.join(', ') || 'none'})
-- Has CTA: ${scrapedData.website.hasCTA} ("${scrapedData.website.ctaText}")
-- Has Canonical: ${scrapedData.website.hasCanonical}
-- Has Robots.txt: ${scrapedData.website.hasRobotsTxt}
-- Has Sitemap: ${scrapedData.website.hasSitemap}
+- Social Links: ${scrapedData.website.hasSocialLinks} (${scrapedData.website.socialLinksFound.join(', ') || 'none'})
+- CTA: ${scrapedData.website.hasCTA} ("${scrapedData.website.ctaText}")
+- Canonical Tag: ${scrapedData.website.hasCanonical}
+- Robots.txt: ${scrapedData.website.hasRobotsTxt}
+- Sitemap: ${scrapedData.website.hasSitemap}
 - Images: ${scrapedData.website.imageCount} total, ${scrapedData.website.imagesWithAlt} with alt text
 - Page Load Time: ${scrapedData.website.pageLoadTime}ms
 
@@ -1021,7 +1021,7 @@ GOOGLE BUSINESS PROFILE:
 - Phone: ${scrapedData.google.phone}
 - Business Types: ${scrapedData.google.businessTypes.join(', ')}
 
-DIRECTORY PRESENCE:
+DIRECTORY PRESENCE (${scrapedData.directories.filter(d => d.status === 'found').length} of ${scrapedData.directories.length} found):
 ${scrapedData.directories.map(d => `- ${d.name}: ${d.status}`).join('\n')}
 
 SOCIAL MEDIA:
@@ -1031,109 +1031,271 @@ LOCAL COMPETITORS:
 ${scrapedData.competitors.map(c => `- ${c.name}: ${c.rating} stars, ${c.reviewCount} reviews`).join('\n')}
 `;
 
-        const prompt = `You are generating a comprehensive digital presence snapshot report for "${input.businessName}"${input.website ? ` (website: ${input.website})` : ''}${input.industry ? ` in the ${input.industry} industry` : ''}${input.location ? ` located in ${input.location}` : ''}.
+        // ── Pre-calculate scores (Loss-Led grading) ───────────────────────────
+        const reviewCount = scrapedData.google.reviewCount || 0;
+        const directoriesFound = scrapedData.directories.filter(d => d.status === 'found').length;
+        const totalDirectories = scrapedData.directories.length;
+        const h1Count = scrapedData.website.h1Count || 0;
+        const hasAddress = scrapedData.website.hasAddress;
+        const industry = input.industry || 'local service';
+        const socialFound = scrapedData.social.filter(s => s.found).length;
+
+        // SEO: heavy penalty for H1 conflicts, missing address, low directory count
+        const seoScore = Math.max(10, 100
+          - (h1Count > 1 ? (h1Count - 1) * 12 : 0)
+          - (!hasAddress ? 15 : 0)
+          - (!scrapedData.website.hasSchemaMarkup ? 10 : 0)
+          - (directoriesFound < 5 ? 20 : directoriesFound < 10 ? 10 : 0));
+        const seoGrade = seoScore >= 80 ? 'B' : seoScore >= 60 ? 'C' : seoScore >= 40 ? 'D' : 'F';
+
+        // Listings
+        const listingsScore = Math.round((directoriesFound / Math.max(totalDirectories, 1)) * 100);
+        const listingsGrade = listingsScore >= 70 ? 'C' : listingsScore >= 40 ? 'D' : 'F';
+
+        // Reviews
+        const reviewScore = reviewCount >= 60 ? 75 : reviewCount >= 30 ? 55 : reviewCount >= 10 ? 35 : 18;
+        const reviewGrade = reviewCount >= 60 ? 'C' : reviewCount >= 30 ? 'D' : 'F';
+
+        // Social
+        const socialScore = Math.round((socialFound / Math.max(scrapedData.social.length, 1)) * 100);
+        const socialGrade = socialScore >= 70 ? 'C' : socialScore >= 40 ? 'D' : 'F';
+
+        // Website checklist
+        const websiteChecks = [
+          scrapedData.website.hasAddress, scrapedData.website.hasPhone,
+          scrapedData.website.isHttps, scrapedData.website.isMobileFriendly,
+          scrapedData.website.hasCTA, scrapedData.website.hasSchemaMarkup,
+        ].filter(Boolean).length;
+        const websiteRaw = Math.round((websiteChecks / 6) * 100) - (h1Count > 1 ? 20 : 0);
+        const websiteScore = Math.max(10, websiteRaw);
+        const websiteGrade = websiteScore >= 70 ? 'C' : websiteScore >= 50 ? 'D' : 'F';
+
+        // GEO (Generative Engine Optimization) — scored from available signals
+        const geoScore = Math.max(5,
+          (scrapedData.website.hasSchemaMarkup ? 25 : 0)
+          + (scrapedData.google.found ? 20 : 0)
+          + (reviewCount >= 10 ? 15 : reviewCount >= 3 ? 8 : 0)
+          + (scrapedData.website.hasSitemap ? 10 : 0)
+          + (scrapedData.website.hasTitle && scrapedData.website.hasMetaDescription ? 10 : 0)
+          + (directoriesFound >= 5 ? 10 : 0)
+          + (socialFound >= 2 ? 10 : 0));
+        const geoGrade = geoScore >= 70 ? 'C' : geoScore >= 45 ? 'D' : 'F';
+
+        // Advertising (default F unless we detect paid signals)
+        const adScore = 10;
+        const adGrade = 'F';
+
+        const overallScore = Math.round((seoScore + listingsScore + reviewScore + socialScore + websiteScore + geoScore + adScore) / 7);
+        const overallGrade = overallScore >= 70 ? 'C' : overallScore >= 50 ? 'D' : 'F';
+
+        // ── Revenue leakage calculation ───────────────────────────────────────
+        const isLending = industry.toLowerCase().includes('loan') || industry.toLowerCase().includes('lend') || industry.toLowerCase().includes('mortgage') || industry.toLowerCase().includes('financ');
+        const isRoofing = industry.toLowerCase().includes('roof');
+        const isPool = industry.toLowerCase().includes('pool');
+        const isHVAC = industry.toLowerCase().includes('hvac') || industry.toLowerCase().includes('air') || industry.toLowerCase().includes('heat');
+        const avgDealValue = isLending ? 7000 : isRoofing ? 8000 : isPool ? 3500 : isHVAC ? 4500 : 3000;
+        const avgAnnualInterest = isLending ? 35000 : 0;
+        const monthlyLostDeals = reviewCount < 10 ? 1.5 : reviewCount < 30 ? 1 : 0.5;
+        const lostOriginationAnnual = Math.round(monthlyLostDeals * avgDealValue * 12);
+        const lostInterestAnnual = Math.round(monthlyLostDeals * avgAnnualInterest * 12);
+        const totalRevenueLeak = lostOriginationAnnual + lostInterestAnnual;
+        const monthlyLeak = Math.round(totalRevenueLeak / 12);
+
+        const prompt = `You are a senior digital marketing consultant at Scorpion Global Solutions LLC — a Digital Marketing & AI Agency based in Arizona. You are generating a "Digital Audit & Profit Leakage Report" for "${input.businessName}"${input.website ? ` (${input.website})` : ''}${input.industry ? ` in the ${input.industry} industry` : ''}${input.location ? ` in ${input.location}` : ''}.
+
+AUDIT AUTHORITY: Scorpion Global Solutions LLC | Arizona | Digital Marketing & AI Solutions
+REPORT DATE: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
 
 CRITICAL RULES:
-1. Use ONLY the real data provided below. DO NOT invent review counts, ratings, or directory listings.
-2. For the Advertising section, use keywords relevant to the ${input.industry || 'local service'} industry, NOT "digital marketing" or "marketing agency".
-3. The review count MUST match the real data: ${scrapedData.google.reviewCount} reviews.
-4. Score each category honestly based on the real data.
+1. Use ONLY the real data provided. NEVER hallucinate or invent data.
+2. Lead every section with REVENUE IMPACT first, then technical detail.
+3. Use plain English — explain penalties like you are talking to a business owner, not a developer.
+4. For H1 conflicts: describe it as "You are confusing Google" and explain the revenue consequence.
+5. Use the PRE-CALCULATED SCORES below — do NOT override them.
+6. GEO = Generative Engine Optimization (visibility in ChatGPT, Google AI Overviews, Perplexity, Bing Copilot). Score it honestly based on schema markup, review count, directory presence, and structured data signals.
+7. The report must feel like it was written by a high-end consultant, not a generic tool.
+
+PRE-CALCULATED SCORES (use these exactly — do not change them):
+- Overall: ${overallGrade} (${overallScore}/100)
+- SEO: ${seoGrade} (${seoScore}/100)${h1Count > 1 ? ` — ${h1Count} H1 conflicts detected` : ''}${!hasAddress ? ' — missing business address' : ''}
+- Listings: ${listingsGrade} (${listingsScore}/100) — ${directoriesFound} of ${totalDirectories} directories found
+- Reviews: ${reviewGrade} (${reviewScore}/100) — ${reviewCount} reviews
+- Social: ${socialGrade} (${socialScore}/100) — ${socialFound} of ${scrapedData.social.length} platforms found
+- Website: ${websiteGrade} (${websiteScore}/100) — ${websiteChecks}/6 checklist items passed
+- GEO: ${geoGrade} (${geoScore}/100) — AI engine visibility score
+- Advertising: ${adGrade} (${adScore}/100) — no paid presence detected
+
+REVENUE LEAKAGE:
+- Monthly Lost Deals: ${monthlyLostDeals}
+- Lost Origination/Revenue (Annual): $${lostOriginationAnnual.toLocaleString()}
+${avgAnnualInterest > 0 ? `- Lost Interest Spread (Annual): $${lostInterestAnnual.toLocaleString()}` : ''}
+- TOTAL ANNUAL REVENUE LEAKAGE: $${totalRevenueLeak.toLocaleString()}+
+- Monthly Opportunity Cost: ~$${monthlyLeak.toLocaleString()}/month
 
 ${realDataContext}
 
 Return a JSON object with this EXACT structure (no markdown, no code fences, just raw JSON):
 {
-  "overallGrade": "A" | "B" | "C" | "D" | "F",
-  "overallScore": <number 0-100>,
-  "executiveSummary": "<2-3 sentence overview based on REAL data>",
+  "overallGrade": "${overallGrade}",
+  "overallScore": ${overallScore},
+  "revenueLeak": {
+    "totalAnnual": ${totalRevenueLeak},
+    "monthlyLeak": ${monthlyLeak},
+    "lostOrigination": ${lostOriginationAnnual},
+    "lostInterest": ${lostInterestAnnual},
+    "monthlyLostDeals": ${monthlyLostDeals},
+    "headline": "Your digital presence gaps are costing an estimated $${totalRevenueLeak.toLocaleString()}+ per year",
+    "subheadline": "Roughly $${monthlyLeak.toLocaleString()}/month in opportunity cost currently going to competitors with stronger digital presence"
+  },
+  "executiveSummary": "<3-4 sentence Loss-Led summary. START with the revenue number ($${totalRevenueLeak.toLocaleString()}+). Then explain the site is a static brochure, not a sales engine. Name the 2-3 biggest gaps. End with the fix opportunity.>",
+  "architecturalFailures": [
+    {
+      "title": "<plain-English failure title, e.g. 'The Confusion Penalty — ${h1Count} H1 Tags'>",
+      "impact": "<revenue/ranking impact in plain English>",
+      "fix": "<specific actionable fix>"
+    }
+  ],
+  "competitorComparison": {
+    "reviewsYours": ${reviewCount},
+    "reviewsCompetitorAvg": <estimate from scraped competitors, default 40 if none>,
+    "listingsYours": ${directoriesFound},
+    "listingsCompetitorAvg": <estimate, default 35>,
+    "insight": "<1-2 sentence plain-English competitor gap explanation — lead with money>"
+  },
   "categories": [
     {
       "name": "SEO",
-      "grade": "A"|"B"|"C"|"D"|"F",
-      "score": <0-100>,
+      "grade": "${seoGrade}",
+      "score": ${seoScore},
       "metrics": [
-        { "label": "<metric>", "value": "<real value>", "benchmark": "<industry avg>", "status": "good"|"warning"|"critical" }
+        { "label": "H1 Tag Count", "value": "${h1Count}", "benchmark": "1 (Required)", "status": "${h1Count > 1 ? 'critical' : 'good'}" },
+        { "label": "Title Tag", "value": "${scrapedData.website.hasTitle ? 'Present' : 'Missing'}", "benchmark": "Required", "status": "${scrapedData.website.hasTitle ? 'good' : 'critical'}" },
+        { "label": "Meta Description", "value": "${scrapedData.website.hasMetaDescription ? 'Present' : 'Missing'}", "benchmark": "Required", "status": "${scrapedData.website.hasMetaDescription ? 'good' : 'critical'}" },
+        { "label": "Schema Markup", "value": "${scrapedData.website.hasSchemaMarkup ? 'Present' : 'Missing'}", "benchmark": "Recommended", "status": "${scrapedData.website.hasSchemaMarkup ? 'good' : 'warning'}" },
+        { "label": "Business Address on Site", "value": "${hasAddress ? 'Present' : 'Missing'}", "benchmark": "Required for Local SEO", "status": "${hasAddress ? 'good' : 'critical'}" },
+        { "label": "Sitemap", "value": "${scrapedData.website.hasSitemap ? 'Present' : 'Missing'}", "benchmark": "Required", "status": "${scrapedData.website.hasSitemap ? 'good' : 'warning'}" },
+        { "label": "Images with Alt Text", "value": "${scrapedData.website.imagesWithAlt} of ${scrapedData.website.imageCount}", "benchmark": "100%", "status": "${scrapedData.website.imageCount > 0 && scrapedData.website.imagesWithAlt / scrapedData.website.imageCount > 0.8 ? 'good' : 'warning'}" }
       ],
-      "findings": ["<based on real data>"],
-      "recommendations": ["<actionable>"] 
+      "findings": ["<Loss-Led finding 1 — revenue consequence of H1 conflict or top SEO issue>", "<finding 2>", "<finding 3>"],
+      "recommendations": ["<specific fix 1>", "<specific fix 2>", "<specific fix 3>"]
     },
     {
       "name": "Listings",
-      "grade": "A"|"B"|"C"|"D"|"F",
-      "score": <0-100>,
-      "presenceCount": ${scrapedData.directories.filter(d => d.status === 'found').length},
-      "totalDirectories": ${scrapedData.directories.length},
-      "accuracyPercent": <0-100>,
+      "grade": "${listingsGrade}",
+      "score": ${listingsScore},
+      "presenceCount": ${directoriesFound},
+      "totalDirectories": ${totalDirectories},
+      "accuracyPercent": <0-100 based on found vs inaccurate>,
       "directories": ${JSON.stringify(scrapedData.directories.map(d => ({ name: d.name, status: d.status, issues: d.issues })))},
-      "findings": ["<based on real directory data>"],
-      "recommendations": ["<actionable>"]
+      "findings": ["<Loss-Led finding — ghost business factor, missing from X directories>", "<finding 2>"],
+      "recommendations": ["<Citation Blitz: sync NAP across 50+ directories>", "<specific fix 2>"]
     },
     {
       "name": "Reviews",
-      "grade": "A"|"B"|"C"|"D"|"F",
-      "score": <0-100>,
+      "grade": "${reviewGrade}",
+      "score": ${reviewScore},
       "metrics": [
-        { "label": "Total Reviews Found", "value": "${scrapedData.google.reviewCount}", "benchmark": "<industry avg>", "industryLeader": "<from competitors>" },
-        { "label": "Average Rating", "value": "${scrapedData.google.rating}", "benchmark": "<industry avg>", "industryLeader": "<from competitors>" },
-        { "label": "Reviews Per Month", "value": "<estimate>", "benchmark": "<industry avg>", "industryLeader": "<from competitors>" },
-        { "label": "Review Sources", "value": "<count>", "benchmark": "<industry avg>", "industryLeader": "<from competitors>" }
+        { "label": "Total Reviews", "value": "${reviewCount}", "benchmark": "30+ (Competitive)", "industryLeader": "<from competitors or 100+>" },
+        { "label": "Average Rating", "value": "${scrapedData.google.rating || 'N/A'}", "benchmark": "4.5+", "industryLeader": "<from competitors>" },
+        { "label": "Review Velocity", "value": "<estimate per month>", "benchmark": "3-5/month", "industryLeader": "<from competitors>" }
       ],
-      "findings": ["<based on real review data>"],
-      "recommendations": ["<actionable>"]
+      "findings": ["<Loss-Led finding — social proof gap, clients choose competitors>", "<finding 2>"],
+      "recommendations": ["<Get to 30+ reviews within 90 days — specific strategy>", "<specific fix 2>"]
     },
     {
       "name": "Social",
-      "grade": "A"|"B"|"C"|"D"|"F",
-      "score": <0-100>,
+      "grade": "${socialGrade}",
+      "score": ${socialScore},
       "platforms": ${JSON.stringify(scrapedData.social.map(s => ({ name: s.platform, found: s.found, followers: s.followers || 'N/A', activity: s.activity, recommendation: '' })))},
-      "findings": ["<based on real social data>"],
-      "recommendations": ["<actionable>"]
+      "findings": ["<Loss-Led finding — missing platforms = missing trust channels for this industry>", "<finding 2>"],
+      "recommendations": ["<specific platform to prioritize for ${industry}>", "<specific fix 2>"]
     },
     {
       "name": "Website",
-      "grade": "A"|"B"|"C"|"D"|"F",
-      "score": <0-100>,
+      "grade": "${websiteGrade}",
+      "score": ${websiteScore},
       "checklist": [
         { "item": "Business Address", "found": ${scrapedData.website.hasAddress} },
         { "item": "Phone Number", "found": ${scrapedData.website.hasPhone} },
         { "item": "HTTPS Secure", "found": ${scrapedData.website.isHttps} },
         { "item": "Mobile Friendly", "found": ${scrapedData.website.isMobileFriendly} },
         { "item": "Social Links", "found": ${scrapedData.website.hasSocialLinks} },
-        { "item": "Call-to-Action", "found": ${scrapedData.website.hasCTA} }
+        { "item": "Call-to-Action", "found": ${scrapedData.website.hasCTA} },
+        { "item": "Schema Markup", "found": ${scrapedData.website.hasSchemaMarkup} },
+        { "item": "No H1 Conflicts", "found": ${h1Count <= 1} }
       ],
       "performance": {
-        "mobileScore": <estimate 0-100>,
+        "mobileScore": <estimate 0-100 based on load time and mobile-friendly flag>,
         "desktopScore": <estimate 0-100>,
         "pageSpeed": "${(scrapedData.website.pageLoadTime / 1000).toFixed(1)}s",
         "lcp": "<estimate>",
         "cls": "<estimate>",
         "fid": "<estimate>"
       },
-      "findings": ["<based on real website data>"],
-      "recommendations": ["<actionable>"]
+      "findings": ["<Loss-Led finding — static brochure vs sales engine>", "<finding 2>"],
+      "recommendations": ["<Add Quick Quote Calculator or lead capture form>", "<specific fix 2>"]
+    },
+    {
+      "name": "GEO",
+      "grade": "${geoGrade}",
+      "score": ${geoScore},
+      "metrics": [
+        { "label": "Schema / Structured Data", "value": "${scrapedData.website.hasSchemaMarkup ? 'Present' : 'Missing'}", "benchmark": "Required for AI citations", "status": "${scrapedData.website.hasSchemaMarkup ? 'good' : 'critical'}" },
+        { "label": "Google Business Profile", "value": "${scrapedData.google.found ? 'Verified' : 'Not Found'}", "benchmark": "Required", "status": "${scrapedData.google.found ? 'good' : 'critical'}" },
+        { "label": "Review Count (AI Trust Signal)", "value": "${reviewCount}", "benchmark": "10+ for AI citations", "status": "${reviewCount >= 10 ? 'good' : reviewCount >= 3 ? 'warning' : 'critical'}" },
+        { "label": "Directory Consistency (NAP)", "value": "${directoriesFound} of ${totalDirectories} directories", "benchmark": "20+ for AI confidence", "status": "${directoriesFound >= 20 ? 'good' : directoriesFound >= 8 ? 'warning' : 'critical'}" },
+        { "label": "Sitemap (AI Crawlability)", "value": "${scrapedData.website.hasSitemap ? 'Present' : 'Missing'}", "benchmark": "Required", "status": "${scrapedData.website.hasSitemap ? 'good' : 'warning'}" },
+        { "label": "AI Overview Visibility", "value": "<estimate: Low/Medium/High based on above signals>", "benchmark": "Medium+", "status": "${geoScore >= 50 ? 'warning' : 'critical'}" }
+      ],
+      "findings": [
+        "<Loss-Led finding 1: When someone asks ChatGPT or Google AI 'best ${industry} near me', this business is invisible because X — costing Y leads per month>",
+        "<finding 2: Missing schema markup means AI engines cannot extract business facts>",
+        "<finding 3: Low review count reduces AI citation confidence>"
+      ],
+      "recommendations": [
+        "Add LocalBusiness JSON-LD schema markup to every page",
+        "Build FAQ pages targeting 'best ${industry} in [city]' questions that AI engines pull from",
+        "Reach 10+ Google reviews to qualify for AI Overview citations",
+        "<industry-specific GEO recommendation>"
+      ]
     },
     {
       "name": "Advertising",
-      "grade": "A"|"B"|"C"|"D"|"F",
-      "score": <0-100>,
+      "grade": "${adGrade}",
+      "score": ${adScore},
       "keywords": [
-        { "keyword": "<INDUSTRY-RELEVANT keyword for ${input.industry || 'local service'}>", "impressions": <number>, "clicks": <number> }
+        { "keyword": "<INDUSTRY-RELEVANT keyword 1 for ${industry}>", "impressions": <number>, "clicks": <number> },
+        { "keyword": "<INDUSTRY-RELEVANT keyword 2>", "impressions": <number>, "clicks": <number> },
+        { "keyword": "<INDUSTRY-RELEVANT keyword 3>", "impressions": <number>, "clicks": <number> }
       ],
       "totalImpressions": <number>,
       "totalClicks": <number>,
-      "findings": ["<based on industry analysis>"],
-      "recommendations": ["<actionable with INDUSTRY-SPECIFIC keywords>"]
+      "findings": ["No paid search presence detected — competitors are capturing paid traffic for high-intent ${industry} keywords", "<finding 2>"],
+      "recommendations": ["<specific Google Ads strategy for ${industry}>", "<specific fix 2>"]
     }
   ],
-  "topPriorities": ["<priority 1>", "<priority 2>", "<priority 3>", "<priority 4>", "<priority 5>"]
+  "recoveryRoadmap": [
+    { "priority": 1, "action": "Technical Reset — Fix H1 conflicts and add missing metadata", "timeline": "Week 1-2", "impact": "High" },
+    { "priority": 2, "action": "Citation Blitz — Sync NAP across 50+ directories", "timeline": "Week 2-3", "impact": "High" },
+    { "priority": 3, "action": "Review Velocity Campaign — Target 30+ reviews in 90 days", "timeline": "Month 1-3", "impact": "High" },
+    { "priority": 4, "action": "GEO Foundation — Add LocalBusiness schema and FAQ content for AI engines", "timeline": "Month 1-2", "impact": "Medium" },
+    { "priority": 5, "action": "<industry-specific content or conversion action>", "timeline": "Month 2-3", "impact": "Medium" }
+  ],
+  "topPriorities": [
+    "Fix H1 tag conflicts — consolidate to 1 primary H1 targeting core keyword",
+    "Sync NAP across 50+ business directories (Citation Blitz)",
+    "Launch review velocity campaign — reach 30+ reviews in 90 days",
+    "Add LocalBusiness schema markup for GEO / AI engine visibility",
+    "<industry-specific 5th priority>"
+  ]
 }
 
-IMPORTANT: For Advertising keywords, use terms relevant to ${input.industry || 'the business industry'} such as ${input.industry === 'pool service' ? '"pool cleaning near me", "pool repair", "pool maintenance", "weekly pool service"' : '"' + (input.industry || 'local service') + ' near me", "best ' + (input.industry || 'local service') + '", "affordable ' + (input.industry || 'local service') + '"'}. NEVER use "digital marketing" or "marketing agency" unless that IS the business.`;
+IMPORTANT: For Advertising keywords, use terms relevant to ${industry}. NEVER use "digital marketing" or "marketing agency" unless that IS the business.`;
 
         console.log("[SEO Audit] Calling LLM with real data context...");
         const response = await invokeLLM({
           messages: [
-            { role: "system", content: "You are an expert digital marketing auditor. You MUST use ONLY the real data provided. Never hallucinate or invent data. Always respond with valid JSON only. No markdown, no explanation, no code fences." },
+            { role: "system", content: "You are a senior digital marketing consultant at Scorpion Global Solutions LLC, a Digital Marketing & AI Agency based in Arizona. You generate Loss-Led Digital Audit & Profit Leakage Reports. You MUST use ONLY the real data provided. Never hallucinate or invent data. Always respond with valid JSON only. No markdown, no explanation, no code fences." },
             { role: "user", content: prompt },
           ],
         });
@@ -1157,10 +1319,46 @@ IMPORTANT: For Advertising keywords, use terms relevant to ${input.industry || '
           structuredReport = buildReportFromScrapedData(scrapedData, input.businessName, input.industry || '');
         }
 
+        // VALIDATION: Ensure revenueLeak is present (inject if LLM omitted it)
+        if (!structuredReport.revenueLeak) {
+          structuredReport.revenueLeak = {
+            totalAnnual: totalRevenueLeak,
+            monthlyLeak,
+            lostOrigination: lostOriginationAnnual,
+            lostInterest: lostInterestAnnual,
+            monthlyLostDeals,
+            headline: `Your digital presence gaps are costing an estimated $${totalRevenueLeak.toLocaleString()}+ per year`,
+            subheadline: `Roughly $${monthlyLeak.toLocaleString()}/month in opportunity cost currently going to competitors`,
+          };
+        }
+
+        // VALIDATION: Ensure GEO category is present
+        const geoCat = structuredReport.categories?.find((c: any) => c.name === 'GEO');
+        if (!geoCat) {
+          structuredReport.categories = structuredReport.categories || [];
+          structuredReport.categories.push({
+            name: 'GEO',
+            grade: geoGrade,
+            score: geoScore,
+            metrics: [
+              { label: 'Schema / Structured Data', value: scrapedData.website.hasSchemaMarkup ? 'Present' : 'Missing', benchmark: 'Required for AI citations', status: scrapedData.website.hasSchemaMarkup ? 'good' : 'critical' },
+              { label: 'Google Business Profile', value: scrapedData.google.found ? 'Verified' : 'Not Found', benchmark: 'Required', status: scrapedData.google.found ? 'good' : 'critical' },
+              { label: 'Review Count (AI Trust Signal)', value: String(scrapedData.google.reviewCount), benchmark: '10+ for AI citations', status: scrapedData.google.reviewCount >= 10 ? 'good' : scrapedData.google.reviewCount >= 3 ? 'warning' : 'critical' },
+              { label: 'Directory Consistency (NAP)', value: `${directoriesFound} of ${totalDirectories} directories`, benchmark: '20+ for AI confidence', status: directoriesFound >= 20 ? 'good' : directoriesFound >= 8 ? 'warning' : 'critical' },
+            ],
+            findings: ['Business is not visible in ChatGPT, Google AI Overviews, or Perplexity due to missing structured data and low review count.'],
+            recommendations: ['Add LocalBusiness JSON-LD schema markup to every page', 'Build FAQ pages targeting common questions AI engines pull from', 'Reach 10+ Google reviews to qualify for AI Overview citations'],
+          });
+        } else {
+          // Ensure GEO uses pre-calculated score
+          geoCat.grade = geoGrade;
+          geoCat.score = geoScore;
+        }
+
         // VALIDATION: Override any hallucinated review counts with real data
         const reviewsCat = structuredReport.categories?.find((c: any) => c.name === 'Reviews');
         if (reviewsCat?.metrics) {
-          const totalReviewMetric = reviewsCat.metrics.find((m: any) => m.label === 'Total Reviews Found');
+          const totalReviewMetric = reviewsCat.metrics.find((m: any) => m.label === 'Total Reviews' || m.label === 'Total Reviews Found');
           if (totalReviewMetric) {
             totalReviewMetric.value = String(scrapedData.google.reviewCount);
           }
