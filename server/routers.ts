@@ -965,6 +965,7 @@ const seoAuditRouter = router({
         website: z.string().optional(),
         industry: z.string().optional(),
         location: z.string().optional(),
+        googleMapsUrl: z.string().optional(), // paste Google Maps URL for accurate GBP lookup
         overrides: z.object({
           reviewCount: z.number().optional(),
           rating: z.number().optional(),
@@ -983,6 +984,7 @@ const seoAuditRouter = router({
           website: input.website,
           industry: input.industry,
           location: input.location,
+          googleMapsUrl: input.googleMapsUrl,
           overrides: input.overrides,
         });
         
@@ -1085,6 +1087,18 @@ ${scrapedData.competitors.map(c => `- ${c.name}: ${c.rating} stars, ${c.reviewCo
         const adScore = 10;
         const adGrade = 'F';
 
+        // ── Real competitor averages from scraped data (no AI estimation) ────
+        const comps = scrapedData.competitors.filter(c => c.reviewCount > 0);
+        const competitorReviewAvg = comps.length > 0
+          ? Math.round(comps.reduce((sum, c) => sum + c.reviewCount, 0) / comps.length)
+          : null; // null = no data, do NOT estimate
+        const competitorRatingAvg = comps.length > 0
+          ? Math.round((comps.reduce((sum, c) => sum + c.rating, 0) / comps.length) * 10) / 10
+          : null;
+        const topCompetitor = comps.length > 0
+          ? comps.reduce((a, b) => a.reviewCount > b.reviewCount ? a : b)
+          : null;
+
         const overallScore = Math.round((seoScore + listingsScore + reviewScore + socialScore + websiteScore + geoScore + adScore) / 7);
         const overallGrade = overallScore >= 70 ? 'C' : overallScore >= 50 ? 'D' : 'F';
 
@@ -1157,10 +1171,12 @@ Return a JSON object with this EXACT structure (no markdown, no code fences, jus
   ],
   "competitorComparison": {
     "reviewsYours": ${reviewCount},
-    "reviewsCompetitorAvg": <estimate from scraped competitors, default 40 if none>,
+    "reviewsCompetitorAvg": ${competitorReviewAvg !== null ? competitorReviewAvg : 'null'},
     "listingsYours": ${directoriesFound},
-    "listingsCompetitorAvg": <estimate, default 35>,
-    "insight": "<1-2 sentence plain-English competitor gap explanation — lead with money>"
+    "listingsCompetitorAvg": null,
+    "competitorCount": ${comps.length},
+    "topCompetitor": ${topCompetitor ? `{"name": "${topCompetitor.name}", "reviewCount": ${topCompetitor.reviewCount}, "rating": ${topCompetitor.rating}}` : 'null'},
+    "insight": "<1-2 sentence plain-English competitor gap explanation using ONLY the real scraped competitor data above. If competitorReviewAvg is null, say data was insufficient to compare and do not invent a number.>"
   },
   "categories": [
     {
@@ -1185,7 +1201,7 @@ Return a JSON object with this EXACT structure (no markdown, no code fences, jus
       "score": ${listingsScore},
       "presenceCount": ${directoriesFound},
       "totalDirectories": ${totalDirectories},
-      "accuracyPercent": <0-100 based on found vs inaccurate>,
+      "accuracyPercent": ${Math.round((directoriesFound / Math.max(totalDirectories, 1)) * 100)},
       "directories": ${JSON.stringify(scrapedData.directories.map(d => ({ name: d.name, status: d.status, issues: d.issues })))},
       "findings": ["<Loss-Led finding — ghost business factor, missing from X directories>", "<finding 2>"],
       "recommendations": ["<Citation Blitz: sync NAP across 50+ directories>", "<specific fix 2>"]
@@ -1195,9 +1211,9 @@ Return a JSON object with this EXACT structure (no markdown, no code fences, jus
       "grade": "${reviewGrade}",
       "score": ${reviewScore},
       "metrics": [
-        { "label": "Total Reviews", "value": "${reviewCount}", "benchmark": "30+ (Competitive)", "industryLeader": "<from competitors or 100+>" },
-        { "label": "Average Rating", "value": "${scrapedData.google.rating || 'N/A'}", "benchmark": "4.5+", "industryLeader": "<from competitors>" },
-        { "label": "Review Velocity", "value": "<estimate per month>", "benchmark": "3-5/month", "industryLeader": "<from competitors>" }
+        { "label": "Total Reviews", "value": "${reviewCount}", "benchmark": "30+ (Competitive)", "industryLeader": "${topCompetitor ? topCompetitor.reviewCount + ' (' + topCompetitor.name + ')' : 'N/A — insufficient data'}" },
+        { "label": "Average Rating", "value": "${scrapedData.google.rating || 'N/A'}", "benchmark": "4.5+", "industryLeader": "${competitorRatingAvg !== null ? competitorRatingAvg : 'N/A — insufficient data'}" },
+        { "label": "Review Velocity", "value": "Unknown — not measurable from public data", "benchmark": "3-5/month", "industryLeader": "N/A" }
       ],
       "findings": ["<Loss-Led finding — social proof gap, clients choose competitors>", "<finding 2>"],
       "recommendations": ["<Get to 30+ reviews within 90 days — specific strategy>", "<specific fix 2>"]
@@ -1225,12 +1241,12 @@ Return a JSON object with this EXACT structure (no markdown, no code fences, jus
         { "item": "No H1 Conflicts", "found": ${h1Count <= 1} }
       ],
       "performance": {
-        "mobileScore": <estimate 0-100 based on load time and mobile-friendly flag>,
-        "desktopScore": <estimate 0-100>,
+        "mobileScore": ${scrapedData.website.isMobileFriendly ? (scrapedData.website.pageLoadTime < 2000 ? 80 : scrapedData.website.pageLoadTime < 4000 ? 60 : 40) : 30},
+        "desktopScore": ${scrapedData.website.pageLoadTime < 1000 ? 90 : scrapedData.website.pageLoadTime < 2000 ? 75 : scrapedData.website.pageLoadTime < 4000 ? 55 : 35},
         "pageSpeed": "${(scrapedData.website.pageLoadTime / 1000).toFixed(1)}s",
-        "lcp": "<estimate>",
-        "cls": "<estimate>",
-        "fid": "<estimate>"
+        "lcp": "${scrapedData.website.pageLoadTime > 0 ? (scrapedData.website.pageLoadTime / 1000).toFixed(1) + 's (measured)' : 'Not measured'}",
+        "cls": "Not measured",
+        "fid": "Not measured"
       },
       "findings": ["<Loss-Led finding — static brochure vs sales engine>", "<finding 2>"],
       "recommendations": ["<Add Quick Quote Calculator or lead capture form>", "<specific fix 2>"]
@@ -1439,7 +1455,20 @@ IMPORTANT: For Advertising keywords, use terms relevant to ${industry}. NEVER us
           console.error("[SEO Audit] DB save error (non-fatal):", dbErr);
         }
 
-        return { success: true, report: structuredReport, businessName: input.businessName, website: input.website, brandColors };
+        return {
+          success: true,
+          report: {
+            ...structuredReport,
+            dataConfidence: scrapedData.google.dataConfidence,
+            matchedByUrl: scrapedData.google.matchedByUrl,
+            realReviewCount: scrapedData.google.reviewCount,
+            realRating: scrapedData.google.rating,
+            gbpName: scrapedData.google.name,
+          },
+          businessName: input.businessName,
+          website: input.website,
+          brandColors
+        };
       } catch (error: any) {
         console.error("[SEO Audit] Full error:", error?.message || error);
         return {

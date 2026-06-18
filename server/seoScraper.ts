@@ -56,6 +56,8 @@ export interface GoogleBusinessData {
   website: string;
   phone: string;
   reviews: Array<{ author: string; rating: number; text: string; time: number }>;
+  dataConfidence: "verified" | "name_match" | "unverified"; // how the listing was found
+  matchedByUrl: boolean; // true = Place ID from Google Maps URL (most accurate)
 }
 
 export interface DirectoryPresence {
@@ -283,10 +285,37 @@ function extractBrandColorsFromHTML(html: string, websiteUrl: string): { primary
 // GOOGLE BUSINESS PROFILE (via Places API)
 // ============================================================================
 
+/**
+ * Extract a Google Place ID from a Google Maps URL.
+ * Supports formats:
+ *  - https://maps.google.com/?cid=1234567890
+ *  - https://www.google.com/maps/place/Name/@lat,lng,z/data=!4m...!1s0x...:0x...
+ *  - https://goo.gl/maps/... (short links — cannot extract, will fall back to name search)
+ */
+function extractPlaceIdFromUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // CID format: ?cid=1234567890
+    const cid = u.searchParams.get("cid");
+    if (cid) return `cid:${cid}`; // special marker — needs CID lookup
+    // Place ID in data parameter: !1s0x...ChIJ...
+    const dataParam = u.pathname + u.search;
+    const placeIdMatch = dataParam.match(/!1s(ChIJ[A-Za-z0-9_-]+)/);
+    if (placeIdMatch) return placeIdMatch[1];
+    // place_id query param (some share links)
+    const pid = u.searchParams.get("place_id");
+    if (pid) return pid;
+  } catch {
+    // invalid URL
+  }
+  return null;
+}
+
 export async function fetchGoogleBusinessData(
   businessName: string,
   location?: string,
-  industry?: string
+  industry?: string,
+  googleMapsUrl?: string
 ): Promise<GoogleBusinessData> {
   const result: GoogleBusinessData = {
     found: false,
@@ -299,10 +328,65 @@ export async function fetchGoogleBusinessData(
     website: "",
     phone: "",
     reviews: [],
+    dataConfidence: "unverified",
+    matchedByUrl: false,
+  };
+
+  // Helper: fetch full Place Details by Place ID
+  const fetchPlaceDetails = async (placeId: string): Promise<boolean> => {
+    try {
+      const details = await makeRequest<PlaceDetailsResult>(
+        "/maps/api/place/details/json",
+        {
+          place_id: placeId,
+          fields: "name,rating,user_ratings_total,reviews,website,formatted_phone_number,formatted_address,types",
+        }
+      );
+      if (details.status === "OK" && details.result) {
+        result.found = true;
+        result.placeId = placeId;
+        result.name = details.result.name;
+        result.address = details.result.formatted_address || "";
+        result.rating = details.result.rating || 0;
+        result.reviewCount = details.result.user_ratings_total || 0;
+        result.website = details.result.website || "";
+        result.phone = details.result.formatted_phone_number || "";
+        result.businessTypes = (details.result as any).types || [];
+        result.reviews = (details.result.reviews || []).map((r: any) => ({
+          author: r.author_name,
+          rating: r.rating,
+          text: r.text,
+          time: r.time,
+        }));
+        return true;
+      }
+    } catch (e) {
+      console.log("[SEO Scraper] Place details failed for", placeId, e);
+    }
+    return false;
   };
 
   try {
-    // Try multiple search strategies
+    // ── STRATEGY 1: Google Maps URL provided (most accurate) ──────────────────
+    if (googleMapsUrl) {
+      console.log("[SEO Scraper] Using Google Maps URL for lookup:", googleMapsUrl);
+      const extractedId = extractPlaceIdFromUrl(googleMapsUrl);
+      if (extractedId && !extractedId.startsWith("cid:")) {
+        // Direct Place ID extracted from URL
+        const ok = await fetchPlaceDetails(extractedId);
+        if (ok) {
+          result.dataConfidence = "verified";
+          result.matchedByUrl = true;
+          console.log("[SEO Scraper] ✅ Verified via Google Maps URL. Reviews:", result.reviewCount);
+          return result;
+        }
+      }
+      // If URL had a CID or we couldn't extract, fall through to name search
+      // but use the business name from the URL path as a hint
+      console.log("[SEO Scraper] Could not extract Place ID from URL, falling back to name search");
+    }
+
+    // ── STRATEGY 2: Name + location search ───────────────────────────────────
     const queries = [
       `${businessName}${location ? ` ${location}` : ""}`,
       `${businessName}${industry ? ` ${industry}` : ""}`,
@@ -311,6 +395,7 @@ export async function fetchGoogleBusinessData(
 
     let placeId = "";
     let bestMatch: any = null;
+    let exactNameMatch = false;
 
     for (const query of queries) {
       try {
@@ -320,16 +405,23 @@ export async function fetchGoogleBusinessData(
         );
 
         if (searchResult.status === "OK" && searchResult.results?.length > 0) {
-          // Find the best match by name similarity
           const nameNormalized = businessName.toLowerCase().replace(/[^a-z0-9]/g, "");
-          const match = searchResult.results.find((r) => {
+          // Look for exact name match first
+          const exactMatch = searchResult.results.find((r) => {
+            const rName = r.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+            return rName === nameNormalized;
+          });
+          // Then partial match
+          const partialMatch = searchResult.results.find((r) => {
             const rName = r.name.toLowerCase().replace(/[^a-z0-9]/g, "");
             return rName.includes(nameNormalized) || nameNormalized.includes(rName);
-          }) || searchResult.results[0];
+          });
 
+          const match = exactMatch || partialMatch;
           if (match) {
             bestMatch = match;
             placeId = match.place_id;
+            exactNameMatch = !!exactMatch;
             break;
           }
         }
@@ -338,43 +430,15 @@ export async function fetchGoogleBusinessData(
       }
     }
 
-    if (!placeId && bestMatch) {
-      placeId = bestMatch.place_id;
-    }
-
     if (placeId) {
-      // Get detailed place info
-      try {
-        const details = await makeRequest<PlaceDetailsResult>(
-          "/maps/api/place/details/json",
-          {
-            place_id: placeId,
-            fields: "name,rating,user_ratings_total,reviews,website,formatted_phone_number,formatted_address,types,opening_hours",
-          }
-        );
-
-        if (details.status === "OK" && details.result) {
-          result.found = true;
-          result.placeId = placeId;
-          result.name = details.result.name;
-          result.address = details.result.formatted_address || "";
-          result.rating = details.result.rating || 0;
-          result.reviewCount = details.result.user_ratings_total || 0;
-          result.website = details.result.website || "";
-          result.phone = details.result.formatted_phone_number || "";
-          result.businessTypes = (details.result as any).types || [];
-          result.reviews = (details.result.reviews || []).map((r) => ({
-            author: r.author_name,
-            rating: r.rating,
-            text: r.text,
-            time: r.time,
-          }));
-        }
-      } catch (e) {
-        console.log("[SEO Scraper] Place details failed:", e);
+      const ok = await fetchPlaceDetails(placeId);
+      if (ok) {
+        result.dataConfidence = exactNameMatch ? "name_match" : "unverified";
+        result.matchedByUrl = false;
+        console.log(`[SEO Scraper] ${exactNameMatch ? '✅ Exact' : '⚠️ Partial'} name match. Reviews: ${result.reviewCount}, Confidence: ${result.dataConfidence}`);
       }
     } else if (bestMatch) {
-      // Use basic search result data
+      // Use basic search result data (no details call succeeded)
       result.found = true;
       result.placeId = bestMatch.place_id || "";
       result.name = bestMatch.name;
@@ -382,6 +446,8 @@ export async function fetchGoogleBusinessData(
       result.rating = bestMatch.rating || 0;
       result.reviewCount = bestMatch.user_ratings_total || 0;
       result.businessTypes = bestMatch.types || [];
+      result.dataConfidence = "unverified";
+      result.matchedByUrl = false;
     }
   } catch (error: any) {
     console.error("[SEO Scraper] Google Business fetch error:", error?.message);
@@ -607,6 +673,7 @@ export async function scrapeAllData(params: {
   website?: string;
   industry?: string;
   location?: string;
+  googleMapsUrl?: string; // paste a Google Maps URL for accurate GBP lookup
   overrides?: {
     reviewCount?: number;
     rating?: number;
@@ -658,7 +725,8 @@ export async function scrapeAllData(params: {
   const googleData = await fetchGoogleBusinessData(
     params.businessName,
     params.location || (websiteAnalysis.address ? websiteAnalysis.address : undefined),
-    params.industry
+    params.industry,
+    params.googleMapsUrl
   );
 
   // Apply manual overrides

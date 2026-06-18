@@ -374,6 +374,7 @@ export default function SEOAudit() {
   const [website, setWebsite] = useState("");
   const [industry, setIndustry] = useState("");
   const [location, setLocation] = useState("");
+  const [googleMapsUrl, setGoogleMapsUrl] = useState("");
   const [report, setReport] = useState<any>(null);
   const [brandColors, setBrandColors] = useState<any>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -404,6 +405,7 @@ export default function SEOAudit() {
     generateAudit.mutate({
       clientId: 0, businessName, website: website || undefined,
       industry: industry || undefined, location: location || undefined,
+      googleMapsUrl: googleMapsUrl || undefined,
       overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
     });
   };
@@ -485,7 +487,7 @@ export default function SEOAudit() {
         {/* Input Form */}
         <Card className="mb-8 border-0 shadow-lg">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               <div>
                 <Label className="text-sm font-medium mb-1 block">Business Name *</Label>
                 <Input placeholder="e.g. The Loans Ranger" value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
@@ -502,7 +504,23 @@ export default function SEOAudit() {
                 <Label className="text-sm font-medium mb-1 block">Location</Label>
                 <Input placeholder="e.g. Phoenix, AZ" value={location} onChange={(e) => setLocation(e.target.value)} />
               </div>
-              <div className="flex items-end">
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="md:col-span-2">
+                <Label className="text-sm font-medium mb-1 flex items-center gap-2">
+                  Google Maps URL
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-normal">Recommended for accurate review data</span>
+                </Label>
+                <Input
+                  placeholder="https://www.google.com/maps/place/Business+Name/..."
+                  value={googleMapsUrl}
+                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Paste the business's Google Maps URL to get the exact review count. Without it, we search by name which may match the wrong listing.
+                </p>
+              </div>
+              <div>
                 <Button onClick={handleGenerate} disabled={generateAudit.isPending}
                   className="w-full bg-gradient-to-r from-[#1B2945] to-[#2d3f6b] hover:from-[#0f1c35] hover:to-[#1B2945] text-white">
                   {generateAudit.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</> : <><Search className="w-4 h-4 mr-2" /> Generate Report</>}
@@ -561,7 +579,23 @@ export default function SEOAudit() {
                 <p className="mt-1 opacity-50 text-xs">
                   Generated {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                 </p>
-                <p className="mt-3 opacity-40 text-xs">Audit Authority: Scorpion Global Solutions LLC · Arizona · Digital Marketing & AI Solutions</p>
+                {/* Data confidence badge */}
+                <div className="mt-3 flex justify-center gap-2 flex-wrap">
+                  {report.dataConfidence === 'verified' ? (
+                    <span className="inline-flex items-center gap-1 bg-green-500/20 border border-green-400/40 text-green-300 px-3 py-1 rounded-full text-xs">
+                      ✓ Google Business Profile: Verified via Maps URL
+                    </span>
+                  ) : report.dataConfidence === 'name_match' ? (
+                    <span className="inline-flex items-center gap-1 bg-yellow-500/20 border border-yellow-400/40 text-yellow-300 px-3 py-1 rounded-full text-xs">
+                      ⚠ Google Business Profile: Matched by name — paste Maps URL for higher accuracy
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 bg-red-500/20 border border-red-400/40 text-red-300 px-3 py-1 rounded-full text-xs">
+                      ✗ Google Business Profile: Not verified — review data may be inaccurate
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 opacity-40 text-xs">Audit Authority: Scorpion Global Solutions LLC · Arizona · Digital Marketing & AI Solutions</p>
               </div>
             </Card>
 
