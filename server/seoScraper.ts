@@ -81,6 +81,7 @@ export interface ScrapedData {
   directories: DirectoryPresence[];
   social: SocialPresence[];
   competitors: Array<{ name: string; rating: number; reviewCount: number }>;
+  keywordData: import("./keywordData").KeywordDataResult;
 }
 
 // ============================================================================
@@ -746,14 +747,19 @@ export async function scrapeAllData(params: {
   console.log("[SEO Scraper] Checking social media presence...");
   const social = await checkSocialPresence(params.businessName, websiteAnalysis);
 
-  // 5. Fetch competitors
-  console.log("[SEO Scraper] Fetching competitor data...");
-  const competitors = await fetchCompetitors(
-    params.industry || "local business",
-    params.location || "local area"
-  );
+  // 5. Fetch competitors + keyword data in parallel
+  console.log("[SEO Scraper] Fetching competitor data and keyword volumes...");
+  const { fetchKeywordData } = await import("./keywordData");
+  const [competitors, keywordData] = await Promise.all([
+    fetchCompetitors(params.industry || "local business", params.location || "local area"),
+    fetchKeywordData(
+      params.industry || "local business",
+      params.location || "local area",
+      params.businessName
+    ),
+  ]);
 
-  console.log("[SEO Scraper] Scrape complete. Google reviews:", googleData.reviewCount, "| Directories found:", directories.filter(d => d.status === "found").length);
+  console.log("[SEO Scraper] Scrape complete. Google reviews:", googleData.reviewCount, "| Directories found:", directories.filter(d => d.status === "found").length, "| Keywords fetched:", keywordData.keywords.length, "(source:", keywordData.source + ")");
 
   return {
     website: websiteAnalysis,
@@ -761,5 +767,6 @@ export async function scrapeAllData(params: {
     directories,
     social,
     competitors,
+    keywordData,
   };
 }

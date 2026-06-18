@@ -849,21 +849,83 @@ export default function SEOAudit() {
                       </div>
                     )}
 
-                    {/* Keywords */}
-                    {cat.keywords && (
+                    {/* Keywords — Advertising section with real data */}
+                    {cat.keywords && cat.name === 'Advertising' && (
                       <div>
-                        <p className="text-sm mb-2"><strong>Monthly Opportunity:</strong> {(cat.totalImpressions || 0).toLocaleString()} impressions</p>
-                        <div className="space-y-2">
+                        {/* Header row */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="text-sm font-semibold">Keyword Opportunity</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(cat.totalMonthlySearchOpportunity || 0).toLocaleString()} total monthly searches in your market
+                            </p>
+                          </div>
+                          {cat.keywordDataSource && (
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              cat.keywordDataSource.includes('DataForSEO live')
+                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                            }`}>
+                              {cat.keywordDataSource.includes('DataForSEO live') ? '✓ Live data' : '⚠ Estimates'}
+                            </span>
+                          )}
+                        </div>
+                        {/* Column headers */}
+                        <div className="grid grid-cols-4 gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wide pb-1 border-b border-border mb-1">
+                          <span className="col-span-2">Keyword</span>
+                          <span className="text-right">Monthly Searches</span>
+                          <span className="text-right">Avg CPC</span>
+                        </div>
+                        <div className="space-y-1">
                           {cat.keywords.map((k: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                              <span className="text-sm text-muted-foreground">"{k.keyword}"</span>
-                              <div className="flex gap-4 text-sm">
-                                <span className="text-muted-foreground">{(k.impressions || 0).toLocaleString()} imp.</span>
-                                <span className="font-semibold">{(k.clicks || 0).toLocaleString()} clicks</span>
+                            <div key={i} className="grid grid-cols-4 gap-2 items-center py-2 border-b border-border/50 last:border-0 hover:bg-muted/30 rounded px-1">
+                              <div className="col-span-2">
+                                <span className="text-sm">"{k.keyword}"</span>
+                                {k.competition && (
+                                  <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
+                                    k.competition === 'HIGH' ? 'bg-red-100 text-red-600' :
+                                    k.competition === 'MEDIUM' ? 'bg-yellow-100 text-yellow-600' :
+                                    'bg-green-100 text-green-600'
+                                  }`}>{k.competition}</span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                {k.monthlySearches != null ? (
+                                  <span className="font-semibold text-sm">{k.monthlySearches.toLocaleString()}</span>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">{(k.impressions || 0).toLocaleString()} imp.</span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                {k.avgCpc != null ? (
+                                  <span className="text-sm text-emerald-600 font-medium">${k.avgCpc.toFixed(2)}</span>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">{(k.clicks || 0).toLocaleString()} clicks</span>
+                                )}
                               </div>
                             </div>
                           ))}
                         </div>
+                        {cat.keywordDataSource && !cat.keywordDataSource.includes('DataForSEO live') && (
+                          <p className="text-xs text-muted-foreground mt-2 italic">
+                            ⚠ These are industry estimates. Add DataForSEO credentials in Settings for live search volume data.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Keywords — non-Advertising sections (legacy) */}
+                    {cat.keywords && cat.name !== 'Advertising' && (
+                      <div className="space-y-2">
+                        {cat.keywords.map((k: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                            <span className="text-sm text-muted-foreground">"{k.keyword}"</span>
+                            <div className="flex gap-4 text-sm">
+                              <span className="text-muted-foreground">{(k.impressions || 0).toLocaleString()} imp.</span>
+                              <span className="font-semibold">{(k.clicks || 0).toLocaleString()} clicks</span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
 

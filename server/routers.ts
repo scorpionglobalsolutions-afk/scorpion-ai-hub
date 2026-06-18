@@ -1083,9 +1083,18 @@ ${scrapedData.competitors.map(c => `- ${c.name}: ${c.rating} stars, ${c.reviewCo
           + (socialFound >= 2 ? 10 : 0));
         const geoGrade = geoScore >= 70 ? 'C' : geoScore >= 45 ? 'D' : 'F';
 
-        // Advertising (default F unless we detect paid signals)
+        // Advertising — score based on real keyword opportunity size
+        const kd = scrapedData.keywordData;
+        const topKwVolume = kd.topKeyword?.monthlySearches || 0;
+        const totalKwOpportunity = kd.totalMonthlyOpportunity || 0;
+        // Score: 10 base (no ads detected) — opportunity size affects urgency not score
         const adScore = 10;
         const adGrade = 'F';
+        // Build real keyword rows for the prompt
+        const realKeywordRows = kd.keywords.slice(0, 6).map(k =>
+          `{ "keyword": "${k.keyword}", "monthlySearches": ${k.monthlySearches}, "avgCpc": ${k.avgCpc}, "competition": "${k.competition}", "intent": "${k.intent}" }`
+        ).join(',\n          ');
+        const kwDataSource = kd.source === 'dataforseo' ? 'DataForSEO live API' : 'Industry estimates (DataForSEO credentials not configured)';
 
         // ── Real competitor averages from scraped data (no AI estimation) ────
         const comps = scrapedData.competitors.filter(c => c.reviewCount > 0);
@@ -1279,15 +1288,21 @@ Return a JSON object with this EXACT structure (no markdown, no code fences, jus
       "name": "Advertising",
       "grade": "${adGrade}",
       "score": ${adScore},
+      "keywordDataSource": "${kwDataSource}",
+      "totalMonthlySearchOpportunity": ${totalKwOpportunity},
       "keywords": [
-        { "keyword": "<INDUSTRY-RELEVANT keyword 1 for ${industry}>", "impressions": <number>, "clicks": <number> },
-        { "keyword": "<INDUSTRY-RELEVANT keyword 2>", "impressions": <number>, "clicks": <number> },
-        { "keyword": "<INDUSTRY-RELEVANT keyword 3>", "impressions": <number>, "clicks": <number> }
+          ${realKeywordRows}
       ],
-      "totalImpressions": <number>,
-      "totalClicks": <number>,
-      "findings": ["No paid search presence detected — competitors are capturing paid traffic for high-intent ${industry} keywords", "<finding 2>"],
-      "recommendations": ["<specific Google Ads strategy for ${industry}>", "<specific fix 2>"]
+      "findings": [
+        "No paid search presence detected — competitors are capturing ${totalKwOpportunity.toLocaleString()} monthly searches for ${industry} keywords in this market",
+        "Top missed keyword: '${kd.topKeyword?.keyword || industry + ' near me'}' gets ${topKwVolume.toLocaleString()} searches/month at $${kd.topKeyword?.avgCpc?.toFixed(2) || '0.00'} avg CPC",
+        "<Write one more specific finding about the competitive paid search landscape for ${industry}>"
+      ],
+      "recommendations": [
+        "Launch Google Ads campaign targeting '${kd.topKeyword?.keyword || industry + ' near me'}' — ${topKwVolume.toLocaleString()} monthly searches at $${kd.topKeyword?.avgCpc?.toFixed(2) || '0.00'}/click",
+        "Set up Google Local Services Ads for immediate top-of-page visibility for ${industry} searches",
+        "<Write one more specific, actionable recommendation for ${industry} paid advertising>"
+      ]
     }
   ],
   "recoveryRoadmap": [
