@@ -131,6 +131,87 @@ export function registerWebhookReceiver(app: Express) {
       timestamp: new Date().toISOString(),
     });
   });
+
+  // ── GET /api/webhooks/:webhookId/events ──────────────────────────────────────
+  // Returns all stored raw payloads for this webhook as JSON.
+  // Each event includes: id, eventType, receivedAt, and the full raw payload
+  // (headers, body, query) exactly as received — nothing stripped.
+  app.get("/api/webhooks/:webhookId/events", async (req: Request, res: Response) => {
+    try {
+      const { webhookId } = req.params;
+      const webhook = await resolveWebhook(webhookId);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found", webhookId });
+      }
+      const events = await db.getWebhookEventsByWebhookId(webhook.id);
+      // Sort newest first
+      const sorted = [...events].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      return res.status(200).json({
+        webhook: { id: webhook.id, name: webhook.name, url: webhook.url },
+        total: sorted.length,
+        events: sorted.map((e) => ({
+          event_id: e.id,
+          event_type: e.eventType,
+          received_at: e.createdAt,
+          status: e.status,
+          raw_payload: e.payload, // Full body, headers, query — nothing stripped
+        })),
+      });
+    } catch (error) {
+      console.error("[Webhook Events List] Error:", error);
+      return res.status(500).json({ error: "Failed to retrieve events" });
+    }
+  });
+
+  // ── GET /api/webhooks/:webhookId/events/export ───────────────────────────────
+  // Downloads all stored events as a .json file attachment.
+  // Ideal for importing into Apollo, spreadsheets, or external tools.
+  app.get("/api/webhooks/:webhookId/events/export", async (req: Request, res: Response) => {
+    try {
+      const { webhookId } = req.params;
+      const webhook = await resolveWebhook(webhookId);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found", webhookId });
+      }
+      const events = await db.getWebhookEventsByWebhookId(webhook.id);
+      const sorted = [...events].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        webhook: { id: webhook.id, name: webhook.name, url: webhook.url },
+        total_events: sorted.length,
+        events: sorted.map((e) => ({
+          event_id: e.id,
+          event_type: e.eventType,
+          received_at: e.createdAt,
+          status: e.status,
+          raw_payload: e.payload,
+        })),
+      };
+      const filename = `${webhookId}-events-${new Date().toISOString().split("T")[0]}.json`;
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      return res.status(200).send(JSON.stringify(exportData, null, 2));
+    } catch (error) {
+      console.error("[Webhook Events Export] Error:", error);
+      return res.status(500).json({ error: "Failed to export events" });
+    }
+  });
+}
+
+/**
+ * Resolve a webhook by numeric ID or slug string
+ */
+async function resolveWebhook(webhookId: string): Promise<any> {
+  const numericId = parseInt(webhookId);
+  if (!isNaN(numericId)) {
+    const w = await db.getWebhookById(numericId);
+    if (w) return w;
+  }
+  return findWebhookBySlug(webhookId);
 }
 
 /**
