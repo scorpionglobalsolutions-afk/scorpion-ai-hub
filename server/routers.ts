@@ -1152,11 +1152,20 @@ ${scrapedData.competitors.map(c => `- ${c.name}: ${c.rating} stars, ${c.reviewCo
         // Score: 10 base (no ads detected) — opportunity size affects urgency not score
         const adScore = 10;
         const adGrade = 'F';
-        // Build real keyword rows for the prompt
-        const realKeywordRows = kd.keywords.slice(0, 6).map(k =>
-          `{ "keyword": "${k.keyword}", "monthlySearches": ${k.monthlySearches}, "avgCpc": ${k.avgCpc}, "competition": "${k.competition}", "intent": "${k.intent}" }`
-        ).join(',\n          ');
-        const kwDataSource = kd.source === 'dataforseo' ? 'DataForSEO live API' : 'Industry estimates (DataForSEO credentials not configured)';
+        // Build real keyword rows — ranked keywords (domain already ranks for) first, then opportunities
+        const rankedRows = (kd.rankedKeywords || []).slice(0, 3).map((k: any) =>
+          `{ "keyword": "${k.keyword}", "monthlySearches": ${k.monthlySearches}, "avgCpc": ${k.avgCpc}, "competition": "${k.competition}", "intent": "${k.intent}", "status": "currently ranking #${k.rankPosition || '?'}" }`
+        );
+        const opportunityRows = (kd.opportunityKeywords || kd.keywords).slice(0, 5).map((k: any) =>
+          `{ "keyword": "${k.keyword}", "monthlySearches": ${k.monthlySearches}, "avgCpc": ${k.avgCpc}, "competition": "${k.competition}", "intent": "${k.intent}", "status": "NOT ranking — opportunity" }`
+        );
+        const realKeywordRows = [...rankedRows, ...opportunityRows].join(',\n          ');
+        const topOpportunity = (kd as any).topOpportunity || (kd as any).opportunityKeywords?.[0] || kd.keywords[0];
+        const kwDataSource = kd.source === 'dataforseo'
+          ? ((kd.rankedKeywords?.length ?? 0) > 0
+            ? `DataForSEO live API — ${kd.rankedKeywords!.length} keywords domain currently ranks for + ${(kd.opportunityKeywords || []).length} top opportunities`
+            : 'DataForSEO live API — keyword ideas based on industry')
+          : 'Industry estimates (DataForSEO credentials not configured)';
 
         // ── Real competitor averages from scraped data (no AI estimation) ────
         const comps = scrapedData.competitors.filter(c => c.reviewCount > 0);

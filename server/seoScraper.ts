@@ -755,7 +755,8 @@ export async function scrapeAllData(params: {
     fetchKeywordData(
       params.industry || "local business",
       params.location || "local area",
-      params.businessName
+      params.businessName,
+      params.website  // Pass website URL for domain-based ranked keyword discovery
     ),
   ]);
 
