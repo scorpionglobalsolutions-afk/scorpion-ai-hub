@@ -173,7 +173,7 @@ function detectEventType(req: Request): string {
 }
 
 /**
- * Extract lead data from various webhook payload formats (n8n, Typeform, HubSpot, generic)
+ * Extract lead data from various webhook payload formats (Apollo, n8n, Typeform, HubSpot, generic)
  */
 function extractLeadData(body: any): {
   name?: string;
@@ -186,7 +186,88 @@ function extractLeadData(body: any): {
 } | null {
   if (!body) return null;
 
-  // n8n Resurrector Agent format: { lead_name, message, status }
+  // ── Apollo.io webhook formats ──────────────────────────────────────────────
+
+  // Apollo format 1: { event_type, contact: { first_name, last_name, email, phone_numbers, organization_name } }
+  if (body.contact && (body.contact.email || body.contact.first_name || body.contact.phone_numbers)) {
+    const c = body.contact;
+    const phone =
+      c.sanitized_phone ||
+      c.phone ||
+      (Array.isArray(c.phone_numbers) && c.phone_numbers[0]?.sanitized_number) ||
+      "";
+    return {
+      name: c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim() || "Unknown",
+      email: c.email || "",
+      phone,
+      business: c.organization_name || c.account?.name || "",
+      industry: c.industry || "",
+      source: `apollo:${body.event_type || "contact"}`,
+      notes: c.title ? `Title: ${c.title}` : "",
+    };
+  }
+
+  // Apollo format 2: { event_type, person: { first_name, last_name, email, sanitized_phone, organization } }
+  if (body.person && (body.person.email || body.person.first_name || body.person.sanitized_phone)) {
+    const p = body.person;
+    const phone =
+      p.sanitized_phone ||
+      p.mobile_phone ||
+      p.phone ||
+      (Array.isArray(p.phone_numbers) && p.phone_numbers[0]?.sanitized_number) ||
+      "";
+    return {
+      name: p.name || `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Unknown",
+      email: p.email || "",
+      phone,
+      business: p.organization?.name || p.company || p.organization_name || "",
+      industry: p.industry || "",
+      source: `apollo:${body.event_type || "person"}`,
+      notes: p.title ? `Title: ${p.title}` : "",
+    };
+  }
+
+  // Apollo format 3: { type, data: { person: { ... } } }
+  if (body.data?.person) {
+    const p = body.data.person;
+    const phone =
+      p.sanitized_phone ||
+      p.mobile_phone ||
+      p.phone ||
+      (Array.isArray(p.phone_numbers) && p.phone_numbers[0]?.sanitized_number) ||
+      "";
+    return {
+      name: p.name || `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Unknown",
+      email: p.email || "",
+      phone,
+      business: p.organization?.name || p.company || p.organization_name || "",
+      industry: p.industry || "",
+      source: `apollo:${body.type || "enriched"}`,
+      notes: p.title ? `Title: ${p.title}` : "",
+    };
+  }
+
+  // Apollo format 4: flat top-level Apollo fields (first_name, last_name, phone_number, organization_name)
+  if (body.first_name || body.last_name || body.phone_number) {
+    const phone =
+      body.sanitized_phone ||
+      body.phone_number ||
+      body.mobile_phone ||
+      body.phone ||
+      (Array.isArray(body.phone_numbers) && body.phone_numbers[0]?.sanitized_number) ||
+      "";
+    return {
+      name: `${body.first_name || ""} ${body.last_name || ""}`.trim() || body.name || "Unknown",
+      email: body.email || "",
+      phone,
+      business: body.organization_name || body.company || "",
+      industry: body.industry || "",
+      source: `apollo:${body.event_type || "contact"}`,
+      notes: body.title ? `Title: ${body.title}` : "",
+    };
+  }
+
+  // ── n8n Resurrector Agent format: { lead_name, message, status }
   if (body.lead_name || body.lead_email || body.lead_phone) {
     // Strip leading = sign (n8n formula prefix bug)
     const cleanName = (body.lead_name || "").replace(/^=+/, "").trim();
