@@ -1934,7 +1934,7 @@ const webhookRouter = router({
       const webhook = await db.createWebhook({
         userId: ctx.user.id,
         name: input.name,
-        url: input.url || `https://webhook.scorpion.ai/${ctx.user.id}/${input.platform}`,
+        url: input.url || `/api/webhooks/${input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now().toString(36)}`,
         secret: input.secret || `whk_${Date.now()}_${Math.random().toString(36).slice(2)}`,
         events: input.events || "lead.created",
       });
@@ -1950,13 +1950,34 @@ const webhookRouter = router({
   test: protectedProcedure
     .input(z.object({ webhookId: z.number() }))
     .mutation(async ({ input }) => {
+      // Send a realistic test payload that exercises the full lead creation path
+      const testPayload = {
+        event_type: "lead.created",
+        name: "Test Lead",
+        email: "test@omniscorp-test.com",
+        phone: "+15555550100",
+        business: "Test Company Inc",
+        source: "webhook-test",
+        notes: "Sent via webhook test button",
+      };
       await db.createWebhookEvent({
         webhookId: input.webhookId,
         eventType: "test",
-        payload: { test: true, timestamp: new Date().toISOString() },
+        payload: { body: testPayload, headers: {}, query: {}, receivedAt: new Date().toISOString() },
         status: "sent",
       });
-      return { success: true, message: "Test event sent successfully" };
+      // Also create a real lead so the test is end-to-end
+      await db.createLead({
+        campaignId: 0,
+        clientId: 0,
+        name: testPayload.name,
+        email: testPayload.email,
+        phone: testPayload.phone,
+        company: testPayload.business,
+        notes: testPayload.notes,
+        source: `webhook-test:${input.webhookId}`,
+      });
+      return { success: true, message: "Test event sent and lead created in Leads Inbox" };
     }),
 
   toggle: protectedProcedure
