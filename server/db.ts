@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -213,7 +213,7 @@ export async function getLeadById(leadId: number) {
 export async function getAllLeads(limit = 100) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(leads).orderBy(leads.createdAt).limit(limit);
+  return db.select().from(leads).orderBy(desc(leads.createdAt)).limit(limit);
 }
 
 export async function updateLeadStatus(id: number, status: "new" | "contacted" | "qualified" | "converted" | "lost") {
@@ -230,11 +230,38 @@ export async function createLead(data: {
   phone?: string;
   company?: string;
   source?: string;
+  notes?: string;
+  metadata?: any;
 }) {
   const db = await getDb();
   if (!db) return null;
   const result = await db.insert(leads).values(data);
   return result;
+}
+
+export async function updateLead(
+  id: number,
+  data: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    source?: string;
+    notes?: string;
+    status?: "new" | "contacted" | "qualified" | "converted" | "lost";
+  }
+) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(leads).set(data).where(eq(leads.id, id));
+  return getLeadById(id);
+}
+
+export async function deleteLead(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.delete(leads).where(eq(leads.id, id));
+  return { success: true };
 }
 
 // ============================================================================

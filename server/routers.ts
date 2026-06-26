@@ -323,6 +323,7 @@ const leadRouter = router({
         phone: z.string().optional(),
         company: z.string().optional(),
         source: z.string().optional(),
+        notes: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -335,6 +336,67 @@ const leadRouter = router({
         details: input,
       });
       return result;
+    }),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      return db.getLeadById(input.id);
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        company: z.string().optional(),
+        source: z.string().optional(),
+        notes: z.string().optional(),
+        status: z.enum(["new", "contacted", "qualified", "converted", "lost"]).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      const result = await db.updateLead(id, data);
+      await db.logActivity({
+        userId: ctx.user.id,
+        clientId: 0,
+        action: "updated_lead",
+        entityType: "lead",
+        details: input,
+      });
+      return result;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.logActivity({
+        userId: ctx.user.id,
+        clientId: 0,
+        action: "deleted_lead",
+        entityType: "lead",
+        details: { id: input.id },
+      });
+      return db.deleteLead(input.id);
+    }),
+
+  search: protectedProcedure
+    .input(z.object({ query: z.string(), limit: z.number().optional() }))
+    .query(async ({ input }) => {
+      const all = await db.getAllLeads(500);
+      const q = input.query.toLowerCase();
+      const filtered = all.filter(
+        (l) =>
+          (l.name && l.name.toLowerCase().includes(q)) ||
+          (l.email && l.email.toLowerCase().includes(q)) ||
+          (l.phone && l.phone.includes(q)) ||
+          (l.company && l.company.toLowerCase().includes(q)) ||
+          (l.source && l.source.toLowerCase().includes(q))
+      );
+      return filtered.slice(0, input.limit ?? 50);
     }),
 });
 

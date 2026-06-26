@@ -78,6 +78,7 @@ export function registerWebhookReceiver(app: Express) {
             email: leadData.email || "",
             phone: leadData.phone || "",
             company: leadData.business || "",
+            notes: leadData.notes || "",
             source: `webhook:${webhook.name || webhookId}`,
           });
           leadCreated = true;
