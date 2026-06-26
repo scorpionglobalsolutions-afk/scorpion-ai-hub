@@ -397,8 +397,27 @@ export default function SEOAudit() {
     onError: (err) => toast.error("Failed to generate audit: " + err.message),
   });
 
+  // Clear all state so every audit starts completely fresh — no bleed from previous runs
+  const handleReset = () => {
+    setBusinessName("");
+    setWebsite("");
+    setIndustry("");
+    setLocation("");
+    setGoogleMapsUrl("");
+    setReport(null);
+    setBrandColors(null);
+    setOverrideReviewCount("");
+    setOverrideRating("");
+    setActiveSection(null);
+    setShowOverrides(false);
+    toast.info("Form cleared — ready for a new audit");
+  };
+
   const handleGenerate = () => {
     if (!businessName.trim()) { toast.error("Please enter a business name"); return; }
+    // Always wipe the previous report before starting a new run
+    setReport(null);
+    setBrandColors(null);
     const overrides: any = {};
     if (overrideReviewCount) overrides.reviewCount = parseInt(overrideReviewCount);
     if (overrideRating) overrides.rating = parseFloat(overrideRating);
@@ -520,11 +539,17 @@ export default function SEOAudit() {
                   Paste the business's Google Maps URL to get the exact review count. Without it, we search by name which may match the wrong listing.
                 </p>
               </div>
-              <div>
+              <div className="flex gap-2">
                 <Button onClick={handleGenerate} disabled={generateAudit.isPending}
-                  className="w-full bg-gradient-to-r from-[#1B2945] to-[#2d3f6b] hover:from-[#0f1c35] hover:to-[#1B2945] text-white">
+                  className="flex-1 bg-gradient-to-r from-[#1B2945] to-[#2d3f6b] hover:from-[#0f1c35] hover:to-[#1B2945] text-white">
                   {generateAudit.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</> : <><Search className="w-4 h-4 mr-2" /> Generate Report</>}
                 </Button>
+                {(report || businessName) && (
+                  <Button onClick={handleReset} variant="outline" disabled={generateAudit.isPending}
+                    className="px-3 text-muted-foreground hover:text-destructive hover:border-destructive" title="Clear form for a new audit">
+                    ✕ New Audit
+                  </Button>
+                )}
               </div>
             </div>
 
