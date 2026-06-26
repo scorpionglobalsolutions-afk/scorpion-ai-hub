@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { Zap, BarChart3, Rocket, ArrowRight, Search, Users, Star } from "lucide-react";
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -16,25 +16,8 @@ export default function Home() {
     }
   }, [isAuthenticated, navigate]);
 
-  // While auth check is in flight, show a branded dark loading screen
-  // This prevents the "Get Started" page from flashing for logged-in users
-  if (loading || isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#0f1c35] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <img
-            src="/manus-storage/scorpion_logo_d2ffa99c.png"
-            alt="OmniScorp"
-            className="h-12 w-auto opacity-90 animate-pulse"
-          />
-          <div className="flex gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#C5A059] animate-bounce" style={{ animationDelay: '0ms' }} />
-            <span className="w-2 h-2 rounded-full bg-[#C5A059] animate-bounce" style={{ animationDelay: '150ms' }} />
-            <span className="w-2 h-2 rounded-full bg-[#C5A059] animate-bounce" style={{ animationDelay: '300ms' }} />
-          </div>
-        </div>
-      </div>
-    );
+  if (isAuthenticated) {
+    return null;
   }
 
   return (
