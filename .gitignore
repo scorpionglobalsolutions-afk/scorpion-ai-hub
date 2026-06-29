@@ -3,7 +3,7 @@
 .pnpm-store/
 
 # Build outputs
-dist/
+# dist/ is committed for Hostinger VPS deployment (no build step on server)
 build/
 *.dist
 
